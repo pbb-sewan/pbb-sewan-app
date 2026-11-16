@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBB Sewan</title>
+<style>
+body{font-family:Arial;background:#f1f5f9;margin:0;color:#1e293b}
+header{background:#14532d;color:white;padding:22px}
+main{padding:16px;max-width:700px;margin:auto}
+.card{background:white;padding:16px;border-radius:12px;margin:12px 0}
+input,button{padding:12px;margin:5px 0;width:100%;box-sizing:border-box;border-radius:8px;border:1px solid #cbd5e1}
+button{background:#166534;color:white;border:0;font-weight:bold}
+.secondary{background:#475569}
+.hidden{display:none}
+.item{border-bottom:1px solid #ddd;padding:12px 0}
+</style>
+</head>
+<body>
+<header>
+<h2>PBB SEWAN</h2>
+<p>Aplikasi Pembayaran Pajak Bumi dan Bangunan</p>
+</header>
+<main>
+<div class="card" id="config">
+<h3>Pengaturan Supabase</h3>
+<p>Masukkan Project URL dan Publishable Key Supabase.</p>
+<input id="url" placeholder="Project URL">
+<input id="key" placeholder="Publishable Key">
+<button onclick="connect()">Hubungkan</button>
+</div>
+
+<div id="login" class="card hidden">
+<h3>Login Pengelola</h3>
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Masuk</button>
+</div>
+
+<div id="app" class="hidden">
+<div class="card">
+<h3>Dashboard PBB Sewan</h3>
+<button class="secondary" onclick="logout()">Keluar</button>
+</div>
+<div class="card">
+<h3>Tambah Wajib Pajak</h3>
+<input id="nop" placeholder="Nomor Objek Pajak (NOP)">
+<input id="nama" placeholder="Nama wajib pajak">
+<input id="alamat" placeholder="Alamat">
+<input id="nominal" type="number" placeholder="Nominal pajak">
+<button onclick="addTaxpayer()">Simpan Wajib Pajak</button>
+</div>
+<div class="card">
+<h3>Data Pembayaran</h3>
+<label>Tahun pembayaran</label>
+<input id="tahun" type="number">
+<div id="data"></div>
+</div>
+</div>
+</main>
+
+<script type="module">
+import {createClient} from
+'https://esm.sh/@supabase/supabase-js@2';
+
+let db;
+let taxpayers=[];
+
+window.connect=async()=>{
+ const u=document.getElementById('url').value.trim();
+ const k=document.getElementById('key').value.trim();
+ if(!u||!k)return alert('Lengkapi pengaturan Supabase');
+ db=createClient(u,k);
+ document.getElementById('config').classList.add('hidden');
+ document.getElementById('login').classList.remove('hidden');
+};
+
+window.login=async()=>{
+ const {data,error}=await db.auth.signInWithPassword({
+ email:email.value,password:password.value
+ });
+ if(error)return alert(error.message);
+ document.getElementById('login').classList.add('hidden');
+ document.getElementById('app').classList.remove('hidden');
+ await loadData();
+};
+
+window.logout=async()=>{
+ await db.auth.signOut();
+ location.reload();
+};
+
+window.addTaxpayer=async()=>{
+ const {data:{user}}=await db.auth.getUser();
+ const {error}=await db.from('wajib_pajak').insert({
+ owner_id:user.id,
+ nop:nop.value.trim(),
+ nama:nama.value.trim(),
+ alamat:alamat.value.trim(),
+ nominal_pajak:Number(nominal.value)||0
+ });
+ if(error)return alert(error.message);
+ alert('Wajib pajak berhasil disimpan');
+ ['nop','nama','alamat','nominal'].forEach(x=>document.getElementById(x).value='');
+ await loadData();
+};
+
+async function loadData(){
+ const {data,error}=await db.from('wajib_pajak')
+ .select('*').order('nama');
+ if(error)return alert(error.message);
+ taxpayers=data||[];
+ await prepareYear();
+}
+
+async function prepareYear(){
+ const year=Number(document.getElementById('tahun').value)||new Date().getFullYear();
+ document.getElementById('tahun').value=year;
+ const {data:{user}}=await db.auth.getUser();
+ const {data:rows,error}=await db.from('pembayaran_pbb')
+ .select('*').eq('tahun',year);
+ if(error)return alert(error.message);
+ const existing=new Set((rows||[]).map(x=>x.wajib_pajak_id));
+ const missing=taxpayers.filter(x=>!existing.has(x.id));
+ if(missing.length){
+ const {error:e}=await db.from('pembayaran_pbb').insert(
+ missing.map(x=>({
+ owner_id:user.id,wajib_pajak_id:x.id,tahun:year,
+ status:'Belum Lunas',jumlah_bayar:0
+ }))
+ );
+ if(e)return alert(e.message);
+ }
+ await render(year);
+}
+
+async function render(year){
+ const {data:rows,error}=await db.from('pembayaran_pbb')
+ .select('*').eq('tahun',year);
+ if(error)return alert(error.message);
+ const box=document.getElementById('data');
+ box.innerHTML='';
+ taxpayers.forEach(t=>{
+ const p=(rows||[]).find(x=>x.wajib_pajak_id===t.id);
+ const div=document.createElement('div');
+ div.className='item';
+ const name=document.createElement('b');
+ name.textContent=t.nama;
+ const info=document.createElement('p');
+ info.textContent='NOP: '+t.nop+' | Rp '+Number(t.nominal_pajak).toLocaleString('id-ID');
+ const status=document.createElement('p');
+ status.textContent=p?p.status:'Belum ada catatan';
+ div.append(name,info,status);
+ if(p){
+ const btn=document.createElement('button');
+ btn.textContent=p.status==='Lunas'?'Ubah ke Belum Lunas':'Tandai Lunas';
+ btn.onclick=()=>toggle(p);
+ div.append(btn);
+ }
+ box.append(div);
+ });
+}
+
+async function toggle(p){
+ const next=p.status==='Lunas'?'Belum Lunas':'Lunas';
+ const {error}=await db.from('pembayaran_pbb')
+ .update({
+ status:next,
+ tanggal_bayar:next==='Lunas'?new Date().toISOString().slice(0,10):null,
+ jumlah_bayar:next==='Lunas'?Number(taxpayers.find(t=>t.id===p.wajib_pajak_id)?.nominal_pajak||0):0
+ }).eq('id',p.id);
+ if(error)return alert(error.message);
+ await loadData();
+}
+
+document.getElementById('tahun').value=new Date().getFullYear();
+document.getElementById('tahun').addEventListener('change',prepareYear);
+</script>
+</body>
+</html>
