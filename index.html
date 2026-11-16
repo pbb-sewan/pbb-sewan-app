@@ -5,7 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#14532d">
-<title>PBB SEWAN 2.0</title>
+<title>PBB SEWAN 3.0</title>
+
 <style>
 :root {
   --green:#14532d;
@@ -31,7 +32,7 @@ header {
 header h2 {margin:0 0 5px}
 header p {margin:0;font-size:13px}
 main {
-  max-width:850px;
+  max-width:950px;
   margin:auto;
   padding:14px;
 }
@@ -78,7 +79,11 @@ button:disabled {opacity:.5}
 .stat.red {background:#fef2f2}
 .stat.blue {background:#eff6ff}
 .stat.gray {background:#f1f5f9}
-.stat p {font-size:12px;margin:0 0 8px;color:#475569}
+.stat p {
+  font-size:12px;
+  margin:0 0 8px;
+  color:#475569;
+}
 .stat strong {
   display:block;
   font-size:clamp(15px,4vw,21px);
@@ -95,14 +100,67 @@ button:disabled {opacity:.5}
 .paid {color:#15803d;font-weight:bold}
 .unpaid {color:#b91c1c;font-weight:bold}
 label {font-size:13px;font-weight:bold}
-#message {font-size:13px;color:var(--red);white-space:pre-wrap}
+#message {
+  font-size:13px;
+  color:var(--red);
+  white-space:pre-wrap;
+  padding:0 5px;
+}
+.table-wrap {
+  width:100%;
+  overflow-x:auto;
+}
+table {
+  width:100%;
+  min-width:650px;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th,td {
+  border:1px solid #e2e8f0;
+  padding:10px;
+  text-align:left;
+}
+th {
+  background:#ecfdf5;
+  color:#14532d;
+}
+tr:nth-child(even) {background:#f8fafc}
+.report-heading {
+  text-align:center;
+  margin-bottom:15px;
+}
+.report-heading h2 {
+  color:var(--green);
+  margin:0 0 5px;
+}
+.report-heading p {
+  margin:3px;
+  font-size:13px;
+  color:var(--muted);
+}
 @media(min-width:600px) {
   .grid {grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media print {
+  body {background:white}
+  header,.no-print,#config,#loginBox,#pinBox,
+  #formCard,#searchCard,#systemCard,#dashboardCard {
+    display:none!important;
+  }
+  main {max-width:100%;padding:0}
+  #app {display:block!important}
+  #reportCard {display:block!important;box-shadow:none}
+  #reportCard button {display:none!important}
+  .card {box-shadow:none}
+  table {min-width:0;font-size:10px}
+  th,td {padding:5px}
 }
 </style>
 </head>
 
 <body>
+
 <header>
   <h2>PBB SEWAN</h2>
   <p>Aplikasi Pengelolaan Pajak Bumi dan Bangunan</p>
@@ -110,10 +168,12 @@ label {font-size:13px;font-weight:bold}
 
 <main>
 
-<!-- PENGATURAN -->
+<!-- PENGATURAN SUPABASE -->
 <section id="config" class="card hidden">
   <h3>Pengaturan Supabase</h3>
-  <p class="muted">Masukkan Project URL dan Publishable Key dari Supabase.</p>
+  <p class="muted">
+    Masukkan Project URL dan Publishable Key dari Supabase.
+  </p>
   <input id="projectUrl" placeholder="https://project.supabase.co">
   <input id="publishableKey" placeholder="Supabase Publishable Key">
   <button id="connectBtn">Hubungkan Supabase</button>
@@ -141,17 +201,19 @@ label {font-size:13px;font-weight:bold}
 <!-- APLIKASI -->
 <section id="app" class="hidden">
 
-  <div class="card">
+  <!-- DASHBOARD -->
+  <div class="card" id="dashboardCard">
     <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
       <div>
         <h3 style="margin-bottom:5px">Dashboard PBB Sewan</h3>
         <div class="muted" id="todayDate"></div>
       </div>
-      <button id="logoutBtn" class="secondary small">Keluar</button>
+      <button id="logoutBtn" class="secondary small no-print">Keluar</button>
     </div>
   </div>
 
-  <div class="card">
+  <!-- RINGKASAN -->
+  <div class="card" id="summaryCard">
     <h3>Ringkasan Pembayaran</h3>
     <label>Tahun pembayaran</label>
     <input id="yearInput" type="number" min="2000" max="2100">
@@ -177,7 +239,7 @@ label {font-size:13px;font-weight:bold}
   </div>
 
   <!-- FORM WAJIB PAJAK -->
-  <div class="card">
+  <div class="card" id="formCard">
     <h3 id="formTitle">Tambah Wajib Pajak</h3>
     <input id="taxId" type="hidden">
 
@@ -203,21 +265,85 @@ label {font-size:13px;font-weight:bold}
   </div>
 
   <!-- PENCARIAN -->
-  <div class="card">
+  <div class="card" id="searchCard">
     <h3>Data Wajib Pajak dan Pembayaran</h3>
     <input id="searchInput"
       placeholder="Cari NOP, nama, atau alamat...">
-
     <div class="muted" id="resultInfo"></div>
     <div id="taxpayerList"></div>
   </div>
 
-  <div class="card">
+  <!-- LAPORAN -->
+  <div class="card" id="reportCard">
+
+    <div class="report-heading">
+      <h2>LAPORAN PBB DUSUN SEWAN</h2>
+      <p>Rekapitulasi Pajak Bumi dan Bangunan</p>
+      <p id="reportYear">TAHUN PEMBAYARAN</p>
+    </div>
+
+    <h3>Ringkasan Laporan</h3>
+
+    <div class="grid">
+      <div class="stat">
+        <p>Total Wajib Pajak</p>
+        <strong id="reportCount">0</strong>
+      </div>
+      <div class="stat">
+        <p>Total Nominal Pajak</p>
+        <strong id="reportTotal">Rp0</strong>
+      </div>
+      <div class="stat blue">
+        <p>Total Sudah Dibayar</p>
+        <strong id="reportPaid">Rp0</strong>
+      </div>
+      <div class="stat red">
+        <p>Total Belum Dibayar</p>
+        <strong id="reportUnpaid">Rp0</strong>
+      </div>
+    </div>
+
+    <h3 style="margin-top:22px">Rincian Pembayaran</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>NOP</th>
+            <th>Nama</th>
+            <th>Alamat</th>
+            <th>Nominal Pajak</th>
+            <th>Status</th>
+            <th>Tanggal Bayar</th>
+          </tr>
+        </thead>
+        <tbody id="reportList">
+          <tr>
+            <td colspan="7">Belum ada data.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="no-print" style="margin-top:16px">
+      <button id="exportBtn">Unduh Laporan CSV / Excel</button>
+      <button id="printBtn" class="secondary">Cetak Laporan</button>
+    </div>
+
+    <p class="muted" style="margin-top:12px">
+      Laporan mengikuti tahun pembayaran yang dipilih pada dashboard.
+      Data diambil langsung dari Supabase.
+    </p>
+  </div>
+
+  <!-- INFORMASI SISTEM -->
+  <div class="card" id="systemCard">
     <h3>Informasi Sistem</h3>
     <p class="muted">
       Data tersimpan secara online di Supabase.
       Riwayat pembayaran disimpan berdasarkan tahun.
-      Tanggal mengikuti kalender perangkat.
+      Tanggal mengikuti zona waktu Asia/Jakarta.
     </p>
   </div>
 
@@ -227,6 +353,7 @@ label {font-size:13px;font-weight:bold}
 </main>
 
 <script type="module">
+
 import {createClient} from
 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -274,8 +401,10 @@ function todayISO() {
     month:'2-digit',
     day:'2-digit'
   }).formatToParts(new Date());
+
   const obj = {};
-  parts.forEach(p => obj[p.type]=p.value);
+  parts.forEach(p=>obj[p.type]=p.value);
+
   return `${obj.year}-${obj.month}-${obj.day}`;
 }
 
@@ -286,7 +415,9 @@ function setDate() {
 function configSaved() {
   const url = localStorage.getItem('pbb_url');
   const key = localStorage.getItem('pbb_key');
+
   if (!url || !key) return false;
+
   db = createClient(url,key);
   return true;
 }
@@ -313,6 +444,7 @@ function connect() {
 
 async function login() {
   message('');
+
   const email = $('loginEmail').value.trim();
   const password = $('loginPassword').value;
 
@@ -339,28 +471,35 @@ async function pinGate() {
 
   if (!saved) {
     pinMode = 'setup';
+
     $('pinTitle').textContent = 'Buat PIN Pribadi';
     $('pinDescription').textContent =
       'Buat PIN 6 angka untuk mengunci aplikasi di browser ini.';
+
     $('pinConfirm').classList.remove('hidden');
   } else {
     pinMode = 'verify';
+
     $('pinTitle').textContent = 'Masukkan PIN Pribadi';
     $('pinDescription').textContent =
       'Masukkan PIN untuk membuka aplikasi.';
+
     $('pinConfirm').classList.add('hidden');
   }
 
   $('pinInput').value = '';
   $('pinConfirm').value = '';
+
   show('pinBox');
 }
 
 async function hashPin(pin,salt) {
   const enc = new TextEncoder();
+
   const key = await crypto.subtle.importKey(
     'raw',enc.encode(pin),'PBKDF2',false,['deriveBits']
   );
+
   const bits = await crypto.subtle.deriveBits({
     name:'PBKDF2',
     salt:enc.encode(salt),
@@ -388,7 +527,9 @@ async function pinAction() {
 
     const salt = crypto.randomUUID();
     const hash = await hashPin(pin,salt);
+
     localStorage.setItem('pbb_pin_hash',salt+':'+hash);
+
     await openApp();
     return;
   }
@@ -414,8 +555,14 @@ async function openApp() {
 
 async function loadData() {
   message('');
+
   const year = Number($('yearInput').value) ||
     Number(todayISO().slice(0,4));
+
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    message('Tahun pembayaran harus antara 2000 sampai 2100.');
+    return;
+  }
 
   $('yearInput').value = year;
 
@@ -452,11 +599,15 @@ async function loadData() {
   }
 
   payments = pay || [];
+
   render();
 }
 
+function getPayment(t) {
+  return payments.find(x=>x.wajib_pajak_id===t.id) || null;
+}
+
 function render() {
-  const year = Number($('yearInput').value);
   const search = $('searchInput').value.trim().toLowerCase();
 
   let total = 0;
@@ -464,8 +615,9 @@ function render() {
   let unpaid = 0;
 
   taxpayers.forEach(t => {
-    const p = payments.find(x=>x.wajib_pajak_id===t.id);
+    const p = getPayment(t);
     const nominal = Number(t.nominal_pajak)||0;
+
     total += nominal;
 
     if (p && p.status === 'Lunas') {
@@ -497,65 +649,232 @@ function render() {
     empty.className = 'muted';
     empty.textContent = 'Data wajib pajak tidak ditemukan.';
     box.append(empty);
-    return;
+  } else {
+    filtered.forEach(t => {
+      const p = getPayment(t);
+      const isPaid = p && p.status === 'Lunas';
+
+      const item = document.createElement('div');
+      item.className = 'item';
+
+      const name = document.createElement('strong');
+      name.textContent = t.nama;
+
+      const info = document.createElement('p');
+      info.textContent = 'NOP: '+t.nop;
+
+      const address = document.createElement('p');
+      address.textContent = 'Alamat: '+(t.alamat||'-');
+
+      const area = document.createElement('p');
+      area.textContent = 'Luas tanah: '+
+        Number(t.luas_tanah||0)+' m²';
+
+      const tax = document.createElement('p');
+      tax.textContent = 'Nominal pajak: '+rupiah(t.nominal_pajak);
+
+      const status = document.createElement('p');
+      status.className = isPaid?'paid':'unpaid';
+      status.textContent = isPaid
+        ? 'LUNAS - '+(p.tanggal_bayar||'-')
+        : 'BELUM LUNAS';
+
+      const paidAmount = document.createElement('p');
+      paidAmount.textContent = 'Jumlah dibayar: '+
+        rupiah(p?.jumlah_bayar||0);
+
+      const buttons = document.createElement('div');
+      buttons.className = 'actions';
+
+      const payBtn = document.createElement('button');
+      payBtn.className = isPaid?'secondary':'';
+      payBtn.textContent = isPaid?'Batalkan Lunas':'Tandai Lunas';
+      payBtn.onclick = ()=>togglePayment(p,t);
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'secondary';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = ()=>editTaxpayer(t);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'danger';
+      deleteBtn.textContent = 'Hapus';
+      deleteBtn.onclick = ()=>deleteTaxpayer(t);
+
+      buttons.append(payBtn,editBtn,deleteBtn);
+
+      item.append(
+        name,info,address,area,tax,status,paidAmount,buttons
+      );
+
+      box.append(item);
+    });
   }
 
-  filtered.forEach(t => {
-    const p = payments.find(x=>x.wajib_pajak_id===t.id);
+  renderReport();
+}
+
+/* =====================================
+   LAPORAN PBB
+===================================== */
+
+function renderReport() {
+  const year = Number($('yearInput').value);
+
+  let total = 0;
+  let paid = 0;
+  let unpaid = 0;
+
+  const report = $('reportList');
+  report.replaceChildren();
+
+  $('reportYear').textContent =
+    'TAHUN PEMBAYARAN '+year;
+
+  taxpayers.forEach((t,index) => {
+    const p = getPayment(t);
+    const nominal = Number(t.nominal_pajak)||0;
     const isPaid = p && p.status === 'Lunas';
 
-    const item = document.createElement('div');
-    item.className = 'item';
+    total += nominal;
 
-    const name = document.createElement('strong');
-    name.textContent = t.nama;
+    if (isPaid) {
+      paid += Number(p.jumlah_bayar)||0;
+    } else {
+      unpaid += nominal;
+    }
 
-    const info = document.createElement('p');
-    info.textContent = 'NOP: '+t.nop;
+    const tr = document.createElement('tr');
 
-    const address = document.createElement('p');
-    address.textContent = 'Alamat: '+(t.alamat||'-');
+    const values = [
+      index+1,
+      t.nop||'-',
+      t.nama||'-',
+      t.alamat||'-',
+      rupiah(nominal),
+      isPaid?'LUNAS':'BELUM LUNAS',
+      isPaid?(p.tanggal_bayar||'-'):'-'
+    ];
 
-    const area = document.createElement('p');
-    area.textContent = 'Luas tanah: '+
-      Number(t.luas_tanah||0)+' m²';
+    values.forEach((value,i) => {
+      const td = document.createElement('td');
+      td.textContent = value;
 
-    const tax = document.createElement('p');
-    tax.textContent = 'Nominal pajak: '+rupiah(t.nominal_pajak);
+      if (i===5) {
+        td.style.fontWeight='bold';
+        td.style.color=isPaid?'#15803d':'#b91c1c';
+      }
 
-    const status = document.createElement('p');
-    status.className = isPaid?'paid':'unpaid';
-    status.textContent = isPaid
-      ? 'LUNAS - '+(p.tanggal_bayar||'-')
-      : 'BELUM LUNAS';
+      tr.append(td);
+    });
 
-    const paidAmount = document.createElement('p');
-    paidAmount.textContent = 'Jumlah dibayar: '+
-      rupiah(p?.jumlah_bayar||0);
-
-    const buttons = document.createElement('div');
-    buttons.className = 'actions';
-
-    const payBtn = document.createElement('button');
-    payBtn.className = isPaid?'secondary':'';
-    payBtn.textContent = isPaid?'Batalkan Lunas':'Tandai Lunas';
-    payBtn.onclick = ()=>togglePayment(p,t);
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'secondary';
-    editBtn.textContent = 'Edit';
-    editBtn.onclick = ()=>editTaxpayer(t);
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'danger';
-    deleteBtn.textContent = 'Hapus';
-    deleteBtn.onclick = ()=>deleteTaxpayer(t);
-
-    buttons.append(payBtn,editBtn,deleteBtn);
-    item.append(name,info,address,area,tax,status,paidAmount,buttons);
-    box.append(item);
+    report.append(tr);
   });
+
+  if (!taxpayers.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+
+    td.colSpan = 7;
+    td.textContent = 'Belum ada data wajib pajak.';
+    tr.append(td);
+    report.append(tr);
+  }
+
+  $('reportCount').textContent = taxpayers.length;
+  $('reportTotal').textContent = rupiah(total);
+  $('reportPaid').textContent = rupiah(paid);
+  $('reportUnpaid').textContent = rupiah(unpaid);
 }
+
+/* =====================================
+   UNDUH LAPORAN CSV
+===================================== */
+
+function csvCell(value) {
+  let text = String(value ?? '');
+
+  // Mencegah isi data dianggap rumus oleh aplikasi spreadsheet.
+  if (/^[=+\-@]/.test(text)) {
+    text = "'"+text;
+  }
+
+  return '"'+text.replace(/"/g,'""')+'"';
+}
+
+function exportReport() {
+  const year = Number($('yearInput').value);
+
+  const rows = [];
+
+  rows.push([
+    'LAPORAN PBB DUSUN SEWAN',
+    'TAHUN '+year
+  ]);
+
+  rows.push([]);
+
+  rows.push(['RINGKASAN']);
+  rows.push(['Jumlah Wajib Pajak',taxpayers.length]);
+  rows.push(['Total Nominal Pajak',$('reportTotal').textContent]);
+  rows.push(['Total Sudah Dibayar',$('reportPaid').textContent]);
+  rows.push(['Total Belum Dibayar',$('reportUnpaid').textContent]);
+
+  rows.push([]);
+
+  rows.push([
+    'No',
+    'NOP',
+    'Nama Wajib Pajak',
+    'Alamat',
+    'Luas Tanah (m2)',
+    'Nominal Pajak',
+    'Status',
+    'Tanggal Pembayaran',
+    'Jumlah Dibayar'
+  ]);
+
+  taxpayers.forEach((t,index) => {
+    const p = getPayment(t);
+    const isPaid = p && p.status === 'Lunas';
+
+    rows.push([
+      index+1,
+      t.nop||'',
+      t.nama||'',
+      t.alamat||'',
+      Number(t.luas_tanah)||0,
+      Number(t.nominal_pajak)||0,
+      isPaid?'Lunas':'Belum Lunas',
+      isPaid?(p.tanggal_bayar||''):'',
+      Number(p?.jumlah_bayar)||0
+    ]);
+  });
+
+  const csv = '\uFEFF'+rows.map(row =>
+    row.map(csvCell).join(';')
+  ).join('\r\n');
+
+  const blob = new Blob([csv],{
+    type:'text/csv;charset=utf-8;'
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = 'Laporan_PBB_Sewan_'+year+'.csv';
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  URL.revokeObjectURL(url);
+}
+
+/* =====================================
+   TAMBAH DAN EDIT WAJIB PAJAK
+===================================== */
 
 async function saveTaxpayer() {
   message('');
@@ -600,6 +919,7 @@ async function saveTaxpayer() {
 
   clearForm();
   await loadData();
+
   alert('Data wajib pajak berhasil disimpan.');
 }
 
@@ -610,19 +930,26 @@ function editTaxpayer(t) {
   $('alamat').value = t.alamat||'';
   $('luas').value = t.luas_tanah||0;
   $('nominal').value = t.nominal_pajak||0;
+
   $('formTitle').textContent = 'Edit Wajib Pajak';
   $('saveTaxBtn').textContent = 'Simpan Perubahan';
   $('cancelEditBtn').classList.remove('hidden');
+
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function clearForm() {
   ['taxId','nop','nama','alamat','luas','nominal']
     .forEach(id=>$(id).value='');
+
   $('formTitle').textContent = 'Tambah Wajib Pajak';
   $('saveTaxBtn').textContent = 'Simpan Wajib Pajak';
   $('cancelEditBtn').classList.add('hidden');
 }
+
+/* =====================================
+   HAPUS WAJIB PAJAK
+===================================== */
 
 async function deleteTaxpayer(t) {
   if (!confirm('Hapus data '+t.nama+
@@ -638,6 +965,10 @@ async function deleteTaxpayer(t) {
 
   await loadData();
 }
+
+/* =====================================
+   PEMBAYARAN
+===================================== */
 
 async function togglePayment(p,t) {
   if (!p) {
@@ -669,12 +1000,18 @@ async function togglePayment(p,t) {
   await loadData();
 }
 
+/* =====================================
+   LOGOUT DAN TOMBOL
+===================================== */
+
 async function logout() {
   const {error} = await db.auth.signOut();
+
   if (error) {
     message(error.message);
     return;
   }
+
   location.reload();
 }
 
@@ -687,8 +1024,15 @@ $('logoutBtn').addEventListener('click',logout);
 $('yearInput').addEventListener('change',loadData);
 $('searchInput').addEventListener('input',render);
 
+$('exportBtn').addEventListener('click',exportReport);
+$('printBtn').addEventListener('click',()=>window.print());
+
 $('yearInput').value = todayISO().slice(0,4);
 setDate();
+
+/* =====================================
+   MULAI APLIKASI
+===================================== */
 
 async function start() {
   if (!configSaved()) {
@@ -708,6 +1052,7 @@ async function start() {
 }
 
 start();
+
 </script>
 </body>
 </html>
