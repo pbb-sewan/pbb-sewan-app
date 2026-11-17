@@ -1,4 +1,3 @@
-HTML
 
 <!DOCTYPE html>
 <html lang="id">
@@ -6,61 +5,51 @@ HTML
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#14532d">
-<title>PBB SEWAN 5.0</title>
+<title>PBB SEWAN 4.0</title>
 <style>
 :root{--g:#14532d;--g2:#166534;--bg:#f3f6f4;--line:#e2e8e5}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#17231c}
-header{background:var(--g);color:white;padding:20px 16px}
-header h1{margin:0;font-size:23px}
-header p{margin:7px 0 0;font-size:14px}
+header{background:var(--g);color:white;padding:18px 15px}
+header h1{margin:0;font-size:21px}
+header p{margin:6px 0 0;font-size:12px}
 main{max-width:1000px;margin:auto;padding:14px}
-.card{background:white;border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:13px;box-shadow:0 2px 7px #00000008}
-h2{font-size:19px;margin:0 0 14px;color:var(--g)}
-input,select{width:100%;padding:12px;border:1px solid #cbd5d0;border-radius:8px;font-size:15px;margin:6px 0 13px;background:white;color:#17231c}
-label{font-size:13px;font-weight:bold;color:#475569}
-button{border:0;border-radius:8px;padding:12px 14px;background:var(--g2);color:white;font-weight:bold;font-size:14px;margin:3px;cursor:pointer}
-button:disabled{opacity:.55;cursor:wait}
+.card{background:white;border:1px solid var(--line);border-radius:13px;padding:15px;margin-bottom:13px;box-shadow:0 2px 7px #00000008}
+h2{font-size:17px;margin:0 0 13px;color:var(--g)}
+input,select{width:100%;padding:11px;border:1px solid #cbd5d0;border-radius:8px;font-size:14px;margin:5px 0 11px;background:white}
+label{font-size:12px;font-weight:bold;color:#475569}
+button{border:0;border-radius:8px;padding:11px 13px;background:var(--g2);color:white;font-weight:bold;font-size:13px;margin:3px;cursor:pointer}
 button.secondary{background:#e2e8e5;color:#1f2937}
 button.danger{background:#b91c1c}
 button.orange{background:#c2410c}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .stat{background:#f0f7f2;border-radius:10px;padding:12px}
-.stat small{display:block;color:#64748b;font-size:12px}
-.stat strong{display:block;font-size:18px;margin-top:6px;overflow-wrap:anywhere}
+.stat small{display:block;color:#64748b;font-size:11px}
+.stat strong{display:block;font-size:17px;margin-top:6px;overflow-wrap:anywhere}
 .tabs{display:flex;gap:5px;overflow-x:auto;margin-bottom:12px}
 .tabs button{white-space:nowrap;background:#dce9df;color:#14532d}
 .tabs button.active{background:var(--g);color:white}
-.person{border:1px solid var(--line);border-radius:10px;padding:13px;margin:9px 0}
-.person small{display:block;color:#64748b;margin-top:5px;line-height:1.8}
-.actions{display:flex;flex-wrap:wrap;gap:3px;margin-top:9px}
+.person{border:1px solid var(--line);border-radius:10px;padding:12px;margin:9px 0}
+.person small{display:block;color:#64748b;margin-top:4px;line-height:1.6}
+.actions{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px}
 .paid{color:#15803d;font-weight:bold}
 .unpaid{color:#b91c1c;font-weight:bold}
-.muted{color:#64748b;font-size:13px;line-height:1.6}
+.muted{color:#64748b;font-size:12px}
 .hidden{display:none!important}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:left}
 th{background:#edf4ef;color:#14532d}
 .tablewrap{overflow-x:auto}
-.notice{padding:11px;border-radius:8px;background:#eff6ff;color:#1e40af;font-size:12px;margin:9px 0;line-height:1.6}
-#message{position:sticky;top:0;z-index:5;padding:9px;text-align:center;font-size:13px;font-weight:bold;display:none}
-#message.show{display:block}
-footer{text-align:center;color:#94a3b8;font-size:12px;padding:18px}
-.formgrid{display:grid;grid-template-columns:1fr;gap:0}
-@media(min-width:650px){
-.grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-.formgrid{grid-template-columns:1fr 1fr;gap:10px}
-}
-@media print{
-header,.tabs,button,#message,#tab-backup,#tab-settings,#tab-history{display:none!important}
-body{background:white}
-.card{box-shadow:none;border:0}
-}
+.notice{padding:10px;border-radius:8px;background:#eff6ff;color:#1e40af;font-size:12px;margin:9px 0}
+#message{position:sticky;top:0;z-index:5;padding:8px;text-align:center;font-size:13px;font-weight:bold}
+footer{text-align:center;color:#94a3b8;font-size:11px;padding:15px}
+@media(min-width:650px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
+@media print{header,.tabs,button,#message,#tab-backup,#tab-settings,#tab-history,#tab-data{display:none!important}body{background:white}.card{box-shadow:none;border:0}}
 </style>
 </head>
 <body>
 <header>
-<h1>🏡 PBB SEWAN 5.0</h1>
+<h1>🏡 PBB SEWAN 4.0</h1>
 <p>Sistem Administrasi Pajak Bumi dan Bangunan</p>
 </header>
 
@@ -71,21 +60,20 @@ body{background:white}
 <h2>Pengaturan Koneksi Supabase</h2>
 <p class="muted">Masukkan Project URL dan Publishable Key Supabase.</p>
 <label>Project URL</label>
-<input id="projectUrl" placeholder="https://project.supabase.co" autocomplete="url">
+<input id="projectUrl" placeholder="https://....supabase.co">
 <label>Publishable Key</label>
 <input id="publishableKey" placeholder="sb_publishable_...">
-<button id="connectBtn" type="button">Hubungkan Supabase</button>
-<p class="muted">Gunakan Publishable Key. Jangan gunakan service_role atau secret key.</p>
+<button id="connectBtn">Hubungkan Supabase</button>
+<p class="muted">Jangan masukkan service_role key ke aplikasi.</p>
 </section>
 
 <section id="loginBox" class="card hidden">
 <h2>Login Pengguna</h2>
-<p class="muted">Masuk menggunakan akun Supabase.</p>
 <label>Email</label>
 <input id="email" type="email" autocomplete="username">
 <label>Password Supabase</label>
 <input id="password" type="password" autocomplete="current-password">
-<button id="loginBtn" type="button">Login</button>
+<button id="loginBtn">Login</button>
 </section>
 
 <section id="pinBox" class="card hidden">
@@ -95,21 +83,24 @@ body{background:white}
 <input id="pinInput" type="password" inputmode="numeric" maxlength="12">
 <label id="pinConfirmLabel" class="hidden">Ulangi PIN</label>
 <input id="pinConfirm" class="hidden" type="password" inputmode="numeric" maxlength="12">
-<button id="pinBtn" type="button">Lanjutkan</button>
-<button class="secondary" id="pinLogout" type="button">Keluar</button>
+<button id="pinBtn">Lanjutkan</button>
+<button class="secondary" id="pinLogout">Keluar</button>
 </section>
 
 <section id="app" class="hidden">
+
 <div class="card">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
 <div>
 <strong>Dashboard PBB Sewan</strong>
 <div class="muted" id="todayText"></div>
 </div>
-<button class="danger" id="logoutBtn" type="button">Keluar</button>
+<button class="danger" id="logoutBtn">Keluar</button>
 </div>
+
 <label>Tahun pembayaran</label>
 <select id="yearSelect"></select>
+
 <div class="grid">
 <div class="stat"><small>Jumlah Wajib Pajak</small><strong id="totalPeople">0</strong></div>
 <div class="stat"><small>Total Nominal Pajak</small><strong id="totalTax">Rp0</strong></div>
@@ -119,11 +110,11 @@ body{background:white}
 </div>
 
 <div class="tabs">
-<button class="active" data-tab="data" type="button">Wajib Pajak</button>
-<button data-tab="report" type="button">Laporan</button>
-<button data-tab="history" type="button">Riwayat</button>
-<button data-tab="backup" type="button">Backup</button>
-<button data-tab="settings" type="button">Pengaturan</button>
+<button class="active" data-tab="data">Wajib Pajak</button>
+<button data-tab="report">Laporan</button>
+<button data-tab="history">Riwayat</button>
+<button data-tab="backup">Backup</button>
+<button data-tab="settings">Pengaturan</button>
 </div>
 
 <section id="tab-data">
@@ -137,9 +128,10 @@ body{background:white}
 <div><label>Luas tanah (m²)</label><input id="luas" type="number" min="0" step=".01"></div>
 <div><label>Nominal pajak (Rp)</label><input id="nominal" type="number" min="0" step="1"></div>
 </div>
-<button id="saveTaxBtn" type="button">Simpan Data</button>
-<button class="secondary" id="resetFormBtn" type="button">Bersihkan</button>
+<button id="saveTaxBtn">Simpan Data</button>
+<button class="secondary" id="resetFormBtn">Bersihkan</button>
 </div>
+
 <div class="card">
 <h2>Daftar Wajib Pajak</h2>
 <input id="search" placeholder="Cari NOP, nama, atau alamat...">
@@ -156,8 +148,8 @@ body{background:white}
 <tbody id="reportBody"></tbody>
 </table>
 </div>
-<button id="csvBtn" type="button">Unduh Laporan CSV</button>
-<button class="secondary" id="printBtn" type="button">Cetak Laporan</button>
+<button id="csvBtn">Unduh Laporan CSV</button>
+<button class="secondary" id="printBtn">Cetak Laporan</button>
 </div>
 <div class="card">
 <h2>Rekap Tunggakan</h2>
@@ -168,7 +160,9 @@ body{background:white}
 <section id="tab-history" class="hidden">
 <div class="card">
 <h2>Riwayat Pembayaran</h2>
-<select id="historyPerson"><option value="">Pilih wajib pajak</option></select>
+<select id="historyPerson">
+<option value="">Pilih wajib pajak</option>
+</select>
 <div id="historyResult"></div>
 </div>
 </section>
@@ -177,13 +171,13 @@ body{background:white}
 <div class="card">
 <h2>Backup Data</h2>
 <p class="muted">Unduh seluruh data wajib pajak dan riwayat pembayaran ke JSON.</p>
-<button id="backupBtn" type="button">Unduh Backup JSON</button>
+<button id="backupBtn">Unduh Backup JSON</button>
 </div>
 <div class="card">
 <h2>Pulihkan Data</h2>
 <p class="muted">Data yang sudah ada tidak ditimpa. Data duplikat dilewati.</p>
 <input type="file" id="restoreFile" accept=".json,application/json">
-<button class="orange" id="restoreBtn" type="button">Pulihkan Backup</button>
+<button class="orange" id="restoreBtn">Pulihkan Backup</button>
 </div>
 </section>
 
@@ -196,764 +190,407 @@ body{background:white}
 <input id="newPin" type="password" inputmode="numeric" maxlength="12">
 <label>Ulangi PIN baru</label>
 <input id="newPin2" type="password" inputmode="numeric" maxlength="12">
-<button id="changePinBtn" type="button">Ganti PIN</button>
-<div class="notice">PIN merupakan pengunci tambahan pada browser/perangkat ini, bukan pengganti login Supabase.</div>
+<button id="changePinBtn">Ganti PIN</button>
+<div class="notice">PIN adalah pengunci tambahan pada browser/perangkat, bukan pengganti login Supabase.</div>
 </div>
-
-<div class="card">
-<h2>Reset PIN karena Lupa</h2>
-<p class="muted">Verifikasi ulang akun Supabase untuk membuat PIN baru tanpa PIN lama.</p>
-<label>Email akun Supabase</label>
-<input id="resetEmail" type="email" autocomplete="username">
-<label>Password akun Supabase</label>
-<input id="resetPassword" type="password" autocomplete="current-password">
-<label>PIN baru</label>
-<input id="resetNewPin" type="password" inputmode="numeric" maxlength="12">
-<label>Ulangi PIN baru</label>
-<input id="resetNewPin2" type="password" inputmode="numeric" maxlength="12">
-<button class="orange" id="resetPinBtn" type="button">Verifikasi dan Reset PIN</button>
-<div class="notice">Reset PIN hanya berlaku pada browser/perangkat ini. Password diverifikasi oleh Supabase dan tidak disimpan oleh aplikasi.</div>
-</div>
-
 <div class="card">
 <h2>Informasi Aplikasi</h2>
-<p class="muted">PBB SEWAN 5.0 · Database Supabase · Sinkronisasi online.</p>
+<p class="muted">PBB SEWAN 4.0 · Database Supabase · Sinkronisasi online.</p>
 <p class="muted">Data pembayaran tahun baru disiapkan saat tahun tersebut dibuka di aplikasi.</p>
 </div>
 </section>
 </section>
 </main>
 
-<footer>PBB SEWAN 5.0 · Administrasi Dusun Sewan</footer>
+<footer>PBB SEWAN 4.0 · Administrasi Dusun Sewan</footer>
 
-<!-- Library Supabase versi 2 untuk browser -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 
-<script>
-'use strict';
+const $=id=>document.getElementById(id);
+let db=null,taxpayers=[],payments=[],allPayments=[],currentUser=null,pinMode='verify';
 
-const $ = id => document.getElementById(id);
+const money=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
+const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta'}).format(new Date());
+const yearNow=()=>Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Jakarta',year:'numeric'}).format(new Date()));
 
-let db = null;
-let taxpayers = [];
-let payments = [];
-let allPayments = [];
-let currentUser = null;
-let pinMode = 'verify';
-let busy = false;
-
-const money = n => new Intl.NumberFormat('id-ID',{
-  style:'currency',currency:'IDR',maximumFractionDigits:0
-}).format(Number(n)||0);
-
-const today = () => new Intl.DateTimeFormat('en-CA',{
-  timeZone:'Asia/Jakarta'
-}).format(new Date());
-
-const yearNow = () => Number(new Intl.DateTimeFormat('en',{
-  timeZone:'Asia/Jakarta',year:'numeric'
-}).format(new Date()));
-
-function msg(text,error=false){
-  const el=$('message');
-  el.textContent=text;
-  el.style.background=error?'#fee2e2':'#dcfce7';
-  el.style.color=error?'#991b1b':'#166534';
-  el.classList.add('show');
+function msg(t,err=false){
+$('message').textContent=t;
+$('message').style.background=err?'#fee2e2':'#dcfce7';
+$('message').style.color=err?'#991b1b':'#166534';
 }
-
-function clearMsg(){
-  $('message').textContent='';
-  $('message').classList.remove('show');
-}
-
 function show(id){
-  ['connection','loginBox','pinBox','app'].forEach(x=>{
-    $(x).classList.add('hidden');
-  });
-  $(id).classList.remove('hidden');
-  clearMsg();
-  window.scrollTo(0,0);
+['connection','loginBox','pinBox','app'].forEach(x=>$(x).classList.add('hidden'));
+$(id).classList.remove('hidden');
 }
-
 function esc(v){
-  return String(v??'').replace(/[&<>"']/g,c=>({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-
-function setBusy(button,on,label){
-  if(!button)return;
-  button.disabled=on;
-  if(on){
-    button.dataset.oldText=button.textContent;
-    button.textContent=label||'Memproses...';
-  }else{
-    button.textContent=button.dataset.oldText||button.textContent;
-  }
-}
-
-function getClient(){
-  if(!window.supabase||!window.supabase.createClient){
-    throw new Error('Library Supabase belum berhasil dimuat. Periksa koneksi internet lalu muat ulang halaman.');
-  }
-  const url=$('projectUrl').value.trim().replace(/\/+$/,'');
-  const key=$('publishableKey').value.trim();
-  if(!url||!key)throw new Error('Project URL dan Publishable Key harus diisi.');
-  if(!/^https:\/\/.+\.supabase\.co$/i.test(url)){
-    throw new Error('Format Project URL tidak sesuai. Gunakan URL project Supabase.');
-  }
-  return window.supabase.createClient(url,key,{
-    auth:{
-      persistSession:true,
-      autoRefreshToken:true,
-      detectSessionInUrl:true
-    }
-  });
-}
-
-function loadConfigFields(){
-  $('projectUrl').value=localStorage.getItem('pbb_url')||'';
-  $('publishableKey').value=localStorage.getItem('pbb_key')||'';
+function cfg(){
+return !!(localStorage.getItem('pbb_url')&&localStorage.getItem('pbb_key'));
 }
 
 async function connect(){
-  const btn=$('connectBtn');
-  if(busy)return;
-  busy=true;
-  setBusy(btn,true,'Menghubungkan...');
-  try{
-    db=getClient();
-    const {error}=await db.auth.getSession();
-    if(error)throw error;
-
-    localStorage.setItem('pbb_url',$('projectUrl').value.trim().replace(/\/+$/,''));
-    localStorage.setItem('pbb_key',$('publishableKey').value.trim());
-
-    msg('Koneksi Supabase berhasil. Silakan login.');
-    show('loginBox');
-  }catch(e){
-    msg('Koneksi gagal: '+(e.message||e),true);
-  }finally{
-    busy=false;
-    setBusy(btn,false);
-  }
+let u=$('projectUrl').value.trim(),k=$('publishableKey').value.trim();
+if(!u||!k)return msg('URL dan Publishable Key harus diisi.',true);
+try{
+db=createClient(u,k);
+let {error}=await db.auth.getSession();
+if(error)throw error;
+localStorage.setItem('pbb_url',u);
+localStorage.setItem('pbb_key',k);
+msg('Koneksi berhasil. Silakan login.');
+show('loginBox');
+}catch(e){msg('Koneksi gagal: '+e.message,true)}
 }
 
 async function login(){
-  const btn=$('loginBtn');
-  if(busy)return;
-  const email=$('email').value.trim();
-  const password=$('password').value;
-
-  if(!email||!password)return msg('Email dan password harus diisi.',true);
-
-  busy=true;
-  setBusy(btn,true,'Memeriksa akun...');
-  try{
-    if(!db)db=getClient();
-
-    const {data,error}=await db.auth.signInWithPassword({email,password});
-    if(error)throw error;
-    if(!data.user)throw new Error('Akun tidak ditemukan.');
-
-    currentUser=data.user;
-    $('password').value='';
-    await pinGate();
-  }catch(e){
-    msg('Login gagal: '+(e.message||e),true);
-  }finally{
-    busy=false;
-    setBusy(btn,false);
-  }
+if(!db)return msg('Hubungkan Supabase dahulu.',true);
+let {data,error}=await db.auth.signInWithPassword({
+email:$('email').value.trim(),
+password:$('password').value
+});
+if(error)return msg(error.message,true);
+currentUser=data.user;
+await pinGate();
 }
 
-function hex(buffer){
-  return [...new Uint8Array(buffer)].map(x=>x.toString(16).padStart(2,'0')).join('');
+function hex(b){
+return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 }
-
 async function hashPin(pin,salt){
-  if(!window.crypto||!crypto.subtle)throw new Error('Fitur keamanan PIN tidak tersedia pada browser ini.');
-  const encoder=new TextEncoder();
-  const key=await crypto.subtle.importKey(
-    'raw',encoder.encode(pin),'PBKDF2',false,['deriveBits']
-  );
-  const result=await crypto.subtle.deriveBits({
-    name:'PBKDF2',
-    salt:encoder.encode(salt),
-    iterations:150000,
-    hash:'SHA-256'
-  },key,256);
-  return hex(result);
-}
-
-function newSalt(){
-  const bytes=crypto.getRandomValues(new Uint8Array(16));
-  return hex(bytes);
-}
-
-async function savePin(pin){
-  const salt=newSalt();
-  const hash=await hashPin(pin,salt);
-  localStorage.setItem('pbb_pin_salt',salt);
-  localStorage.setItem('pbb_pin_hash',hash);
+let e=new TextEncoder();
+let key=await crypto.subtle.importKey('raw',e.encode(pin),'PBKDF2',false,['deriveBits']);
+return hex(await crypto.subtle.deriveBits({
+name:'PBKDF2',salt:e.encode(salt),iterations:150000,hash:'SHA-256'
+},key,256));
 }
 
 async function pinGate(){
-  const saved=localStorage.getItem('pbb_pin_hash');
-  pinMode=saved?'verify':'setup';
-
-  $('pinTitle').textContent=saved?'Masukkan PIN Pribadi':'Buat PIN Pribadi';
-  $('pinDescription').textContent=saved
-    ?'Masukkan PIN untuk membuka aplikasi.'
-    :'Buat PIN tambahan 4–12 angka untuk mengunci aplikasi.';
-
-  $('pinConfirmLabel').classList.toggle('hidden',!!saved);
-  $('pinConfirm').classList.toggle('hidden',!!saved);
-  $('pinInput').value='';
-  $('pinConfirm').value='';
-  show('pinBox');
+let saved=localStorage.getItem('pbb_pin_hash');
+pinMode=saved?'verify':'setup';
+$('pinTitle').textContent=saved?'Masukkan PIN Pribadi':'Buat PIN Pribadi';
+$('pinDescription').textContent=saved?'Masukkan PIN untuk membuka aplikasi.':'Buat PIN tambahan 4–12 angka.';
+$('pinConfirmLabel').classList.toggle('hidden',!!saved);
+$('pinConfirm').classList.toggle('hidden',!!saved);
+$('pinInput').value='';
+$('pinConfirm').value='';
+show('pinBox');
 }
 
 async function pinAction(){
-  const btn=$('pinBtn');
-  if(busy)return;
-  const pin=$('pinInput').value;
-
-  if(!/^\d{4,12}$/.test(pin))return msg('PIN harus 4 sampai 12 angka.',true);
-
-  busy=true;
-  setBusy(btn,true,'Memeriksa PIN...');
-  try{
-    if(pinMode==='setup'){
-      if(pin!==$('pinConfirm').value)throw new Error('Ulangan PIN tidak sama.');
-      await savePin(pin);
-    }else{
-      const salt=localStorage.getItem('pbb_pin_salt')||'';
-      const saved=localStorage.getItem('pbb_pin_hash');
-      if(!saved)throw new Error('Data PIN tidak ditemukan. Keluar lalu login kembali.');
-      const hash=await hashPin(pin,salt);
-      if(hash!==saved)throw new Error('PIN salah.');
-    }
-    await openApp();
-  }catch(e){
-    msg(e.message||String(e),true);
-  }finally{
-    busy=false;
-    setBusy(btn,false);
-  }
+let p=$('pinInput').value;
+if(!/^\d{4,12}$/.test(p))return msg('PIN harus 4 sampai 12 angka.',true);
+if(pinMode==='setup'){
+if(p!==$('pinConfirm').value)return msg('Ulangan PIN tidak sama.',true);
+let s=crypto.randomUUID();
+localStorage.setItem('pbb_pin_salt',s);
+localStorage.setItem('pbb_pin_hash',await hashPin(p,s));
+}else{
+let h=await hashPin(p,localStorage.getItem('pbb_pin_salt')||'');
+if(h!==localStorage.getItem('pbb_pin_hash'))return msg('PIN salah.',true);
+}
+await openApp();
 }
 
 async function openApp(){
-  show('app');
-  $('todayText').textContent='Tanggal: '+new Date().toLocaleDateString('id-ID',{
-    timeZone:'Asia/Jakarta',dateStyle:'full'
-  });
-
-  const y=yearNow();
-  $('yearSelect').innerHTML='';
-  for(let n=y-5;n<=y+2;n++){
-    const option=document.createElement('option');
-    option.value=n;
-    option.textContent=n;
-    if(n===y)option.selected=true;
-    $('yearSelect').append(option);
-  }
-  await loadData();
+show('app');
+$('todayText').textContent='Tanggal: '+new Date().toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'full'});
+let y=yearNow();
+$('yearSelect').innerHTML='';
+for(let n=y-5;n<=y+2;n++){
+let o=document.createElement('option');
+o.value=n;o.textContent=n;
+if(n===y)o.selected=true;
+$('yearSelect').append(o);
+}
+await loadData();
 }
 
 async function loadData(){
-  if(!db||!currentUser)return;
+if(!db||!currentUser)return;
+let y=Number($('yearSelect').value||yearNow());
+msg('Memuat data...');
+let r=await db.rpc('prepare_pbb_year',{p_tahun:y});
+if(r.error)return msg('Gagal menyiapkan tahun: '+r.error.message,true);
 
-  const y=Number($('yearSelect').value||yearNow());
-  msg('Memuat data...');
+let a=await db.from('wajib_pajak').select('*').order('nama');
+if(a.error)return msg(a.error.message,true);
+taxpayers=a.data||[];
 
-  try{
-    const prep=await db.rpc('prepare_pbb_year',{p_tahun:y});
-    if(prep.error)throw new Error('Gagal menyiapkan tahun: '+prep.error.message);
+let b=await db.from('pembayaran_pbb').select('*').eq('tahun',y);
+if(b.error)return msg(b.error.message,true);
+payments=b.data||[];
 
-    const a=await db.from('wajib_pajak').select('*').order('nama');
-    if(a.error)throw a.error;
-    taxpayers=a.data||[];
+let c=await db.from('pembayaran_pbb').select('*').order('tahun',{ascending:false});
+if(c.error)return msg(c.error.message,true);
+allPayments=c.data||[];
 
-    const b=await db.from('pembayaran_pbb').select('*').eq('tahun',y);
-    if(b.error)throw b.error;
-    payments=b.data||[];
-
-    const c=await db.from('pembayaran_pbb').select('*').order('tahun',{ascending:false});
-    if(c.error)throw c.error;
-    allPayments=c.data||[];
-
-    render();
-    msg('Data berhasil diperbarui.');
-  }catch(e){
-    msg('Gagal memuat data: '+(e.message||e),true);
-  }
+render();
+msg('Data berhasil diperbarui.');
 }
 
 function payOf(t){
-  return payments.find(p=>String(p.wajib_pajak_id)===String(t.id))||null;
+return payments.find(p=>p.wajib_pajak_id===t.id)||null;
 }
 
 function render(){
-  const y=Number($('yearSelect').value);
-  let paid=0,unpaid=0;
-
-  taxpayers.forEach(t=>{
-    const p=payOf(t);
-    if(p?.status==='Lunas'){
-      paid+=Number(p.jumlah_bayar||t.nominal_pajak||0);
-    }else{
-      unpaid+=Number(t.nominal_pajak||0);
-    }
-  });
-
-  $('totalPeople').textContent=taxpayers.length;
-  $('totalTax').textContent=money(
-    taxpayers.reduce((sum,t)=>sum+Number(t.nominal_pajak||0),0)
-  );
-  $('totalPaid').textContent=money(paid);
-  $('totalUnpaid').textContent=money(unpaid);
-  $('reportYear').textContent=y;
-
-  renderPeople();
-  renderReport();
-  fillHistorySelect();
+let y=Number($('yearSelect').value),paid=0,unpaid=0;
+taxpayers.forEach(t=>{
+let p=payOf(t);
+if(p?.status==='Lunas')paid+=Number(p.jumlah_bayar||t.nominal_pajak||0);
+else unpaid+=Number(t.nominal_pajak||0);
+});
+$('totalPeople').textContent=taxpayers.length;
+$('totalTax').textContent=money(taxpayers.reduce((s,t)=>s+Number(t.nominal_pajak||0),0));
+$('totalPaid').textContent=money(paid);
+$('totalUnpaid').textContent=money(unpaid);
+$('reportYear').textContent=y;
+renderPeople();
+renderReport();
+fillHistorySelect();
 }
 
 function renderPeople(){
-  const q=$('search').value.toLowerCase();
-  const list=taxpayers.filter(t=>
-    [t.nop,t.nama,t.alamat].join(' ').toLowerCase().includes(q)
-  );
-
-  $('peopleList').innerHTML=list.length?list.map(t=>{
-    const p=payOf(t);
-    const done=p?.status==='Lunas';
-
-    return `<div class="person">
-      <strong>${esc(t.nama)}</strong>
-      <small>
-      NOP: ${esc(t.nop)}<br>
-      Alamat: ${esc(t.alamat||'-')}<br>
-      Luas tanah: ${esc(t.luas_tanah||0)} m²<br>
-      Nominal: ${money(t.nominal_pajak)}<br>
-      Status ${esc($('yearSelect').value)}:
-      <span class="${done?'paid':'unpaid'}">${done?'LUNAS':'BELUM LUNAS'}</span>
-      ${done?'<br>Tanggal bayar: '+esc(p.tanggal_bayar||'-'):''}
-      </small>
-      <div class="actions">
-        <button data-act="pay" data-id="${esc(t.id)}" type="button">${done?'Batalkan Lunas':'Tandai Lunas'}</button>
-        <button class="secondary" data-act="edit" data-id="${esc(t.id)}" type="button">Edit</button>
-        <button class="danger" data-act="delete" data-id="${esc(t.id)}" type="button">Hapus</button>
-      </div>
-    </div>`;
-  }).join(''):'<p class="muted">Belum ada data atau data tidak ditemukan.</p>';
+let q=$('search').value.toLowerCase();
+let list=taxpayers.filter(t=>[t.nop,t.nama,t.alamat].join(' ').toLowerCase().includes(q));
+$('peopleList').innerHTML=list.length?list.map(t=>{
+let p=payOf(t),done=p?.status==='Lunas';
+return `<div class="person">
+<strong>${esc(t.nama)}</strong>
+<small>
+NOP: ${esc(t.nop)}<br>
+Alamat: ${esc(t.alamat||'-')}<br>
+Luas tanah: ${esc(t.luas_tanah||0)} m²<br>
+Nominal: ${money(t.nominal_pajak)}<br>
+Status ${$('yearSelect').value}:
+<span class="${done?'paid':'unpaid'}">${done?'LUNAS':'BELUM LUNAS'}</span>
+${done?'<br>Tanggal bayar: '+esc(p.tanggal_bayar||'-'):''}
+</small>
+<div class="actions">
+<button data-act="pay" data-id="${t.id}">${done?'Batalkan Lunas':'Tandai Lunas'}</button>
+<button class="secondary" data-act="edit" data-id="${t.id}">Edit</button>
+<button class="danger" data-act="delete" data-id="${t.id}">Hapus</button>
+</div></div>`;
+}).join(''):'<p class="muted">Belum ada data atau data tidak ditemukan.</p>';
 }
 
 function renderReport(){
-  const rows=taxpayers.map((t,i)=>{
-    const p=payOf(t);
-    const done=p?.status==='Lunas';
-    return `<tr>
-      <td>${i+1}</td>
-      <td>${esc(t.nop)}</td>
-      <td>${esc(t.nama)}</td>
-      <td>${money(t.nominal_pajak)}</td>
-      <td class="${done?'paid':'unpaid'}">${done?'Lunas':'Belum Lunas'}</td>
-      <td>${esc(p?.tanggal_bayar||'-')}</td>
-    </tr>`;
-  });
-
-  $('reportBody').innerHTML=rows.join('');
-
-  const arrears=taxpayers.filter(t=>payOf(t)?.status!=='Lunas');
-  $('arrears').innerHTML=arrears.length
-    ?arrears.map(t=>`<p>${esc(t.nama)} — ${esc(t.nop)} — ${money(t.nominal_pajak)}</p>`).join('')
-    :'<p class="paid">Tidak ada tunggakan pada tahun ini.</p>';
+let rows=taxpayers.map((t,i)=>{
+let p=payOf(t),done=p?.status==='Lunas';
+return `<tr>
+<td>${i+1}</td><td>${esc(t.nop)}</td><td>${esc(t.nama)}</td>
+<td>${money(t.nominal_pajak)}</td>
+<td class="${done?'paid':'unpaid'}">${done?'Lunas':'Belum Lunas'}</td>
+<td>${esc(p?.tanggal_bayar||'-')}</td>
+</tr>`;
+});
+$('reportBody').innerHTML=rows.join('');
+let ar=taxpayers.filter(t=>payOf(t)?.status!=='Lunas');
+$('arrears').innerHTML=ar.length?
+ar.map(t=>`<p>${esc(t.nama)} — ${esc(t.nop)} — ${money(t.nominal_pajak)}</p>`).join(''):
+'<p class="paid">Tidak ada tunggakan pada tahun ini.</p>';
 }
 
 function resetForm(){
-  ['editId','nop','nama','alamat','luas','nominal'].forEach(id=>$(id).value='');
-  $('formTitle').textContent='Tambah Wajib Pajak';
+['editId','nop','nama','alamat','luas','nominal'].forEach(x=>$(x).value='');
+$('formTitle').textContent='Tambah Wajib Pajak';
 }
 
 async function saveTaxpayer(){
-  const id=$('editId').value;
-  const nop=$('nop').value.trim();
-  const nama=$('nama').value.trim();
-
-  if(!nop||!nama)return msg('NOP dan nama wajib diisi.',true);
-
-  const row={
-    nop,
-    nama,
-    alamat:$('alamat').value.trim(),
-    luas_tanah:Number($('luas').value||0),
-    nominal_pajak:Number($('nominal').value||0)
-  };
-
-  if(row.luas_tanah<0||row.nominal_pajak<0){
-    return msg('Luas dan nominal tidak boleh negatif.',true);
-  }
-
-  try{
-    const query=id
-      ?db.from('wajib_pajak').update(row).eq('id',id)
-      :db.from('wajib_pajak').insert(row);
-
-    const {error}=await query;
-    if(error)throw error;
-
-    resetForm();
-    await loadData();
-    msg('Data wajib pajak tersimpan.');
-  }catch(e){
-    msg('Gagal menyimpan: '+e.message,true);
-  }
+let id=$('editId').value,nop=$('nop').value.trim(),nama=$('nama').value.trim();
+if(!nop||!nama)return msg('NOP dan nama wajib diisi.',true);
+let row={
+nop,nama,
+alamat:$('alamat').value.trim(),
+luas_tanah:Number($('luas').value||0),
+nominal_pajak:Number($('nominal').value||0)
+};
+let q=id?
+db.from('wajib_pajak').update(row).eq('id',id):
+db.from('wajib_pajak').insert(row);
+let {error}=await q;
+if(error)return msg('Gagal menyimpan: '+error.message,true);
+resetForm();
+await loadData();
+msg('Data wajib pajak tersimpan.');
 }
 
 function editTaxpayer(id){
-  const t=taxpayers.find(x=>String(x.id)===String(id));
-  if(!t)return;
-
-  $('editId').value=t.id;
-  $('nop').value=t.nop||'';
-  $('nama').value=t.nama||'';
-  $('alamat').value=t.alamat||'';
-  $('luas').value=t.luas_tanah||0;
-  $('nominal').value=t.nominal_pajak||0;
-  $('formTitle').textContent='Edit Wajib Pajak';
-  window.scrollTo({top:0,behavior:'smooth'});
+let t=taxpayers.find(x=>x.id===id);
+if(!t)return;
+$('editId').value=t.id;
+$('nop').value=t.nop;
+$('nama').value=t.nama;
+$('alamat').value=t.alamat||'';
+$('luas').value=t.luas_tanah||0;
+$('nominal').value=t.nominal_pajak||0;
+$('formTitle').textContent='Edit Wajib Pajak';
+window.scrollTo({top:0,behavior:'smooth'});
 }
 
 async function deleteTaxpayer(id){
-  const t=taxpayers.find(x=>String(x.id)===String(id));
-  if(!t||!confirm('Hapus wajib pajak '+t.nama+' beserta riwayat pembayarannya?'))return;
-
-  try{
-    const {error}=await db.from('wajib_pajak').delete().eq('id',id);
-    if(error)throw error;
-    await loadData();
-    msg('Data berhasil dihapus.');
-  }catch(e){
-    msg('Gagal menghapus: '+e.message,true);
-  }
+let t=taxpayers.find(x=>x.id===id);
+if(!t||!confirm('Hapus wajib pajak '+t.nama+' beserta riwayat pembayarannya?'))return;
+let {error}=await db.from('wajib_pajak').delete().eq('id',id);
+if(error)return msg(error.message,true);
+await loadData();
+msg('Data berhasil dihapus.');
 }
 
 async function togglePayment(id){
-  const t=taxpayers.find(x=>String(x.id)===String(id));
-  if(!t)return;
-
-  const p=payOf(t);
-  if(!p)return msg('Data pembayaran tahun ini tidak ditemukan. Muat ulang aplikasi.',true);
-
-  const done=p.status==='Lunas';
-
-  try{
-    if(done){
-      if(!confirm('Batalkan status lunas untuk wajib pajak ini?'))return;
-      const {error}=await db.from('pembayaran_pbb').update({
-        status:'Belum Lunas',
-        tanggal_bayar:null,
-        jumlah_bayar:0
-      }).eq('id',p.id);
-      if(error)throw error;
-    }else{
-      const val=prompt('Masukkan jumlah pembayaran (Rp):',String(t.nominal_pajak||0));
-      if(val===null)return;
-      const amount=Number(val);
-      if(!Number.isFinite(amount)||amount<0)return msg('Nominal pembayaran tidak valid.',true);
-
-      const {error}=await db.from('pembayaran_pbb').update({
-        status:'Lunas',
-        tanggal_bayar:today(),
-        jumlah_bayar:amount
-      }).eq('id',p.id);
-      if(error)throw error;
-    }
-
-    await loadData();
-  }catch(e){
-    msg('Gagal memperbarui pembayaran: '+e.message,true);
-  }
+let t=taxpayers.find(x=>x.id===id),p=payOf(t),done=p?.status==='Lunas';
+if(done){
+if(!confirm('Batalkan status lunas untuk wajib pajak ini?'))return;
+let {error}=await db.from('pembayaran_pbb').update({
+status:'Belum Lunas',tanggal_bayar:null,jumlah_bayar:0
+}).eq('id',p.id);
+if(error)return msg(error.message,true);
+}else{
+let val=prompt('Masukkan jumlah pembayaran (Rp):',String(t.nominal_pajak||0));
+if(val===null)return;
+let amount=Number(val);
+if(!Number.isFinite(amount)||amount<0)return msg('Nominal pembayaran tidak valid.',true);
+let {error}=await db.from('pembayaran_pbb').update({
+status:'Lunas',tanggal_bayar:today(),jumlah_bayar:amount
+}).eq('id',p.id);
+if(error)return msg(error.message,true);
+}
+await loadData();
 }
 
 function showTab(name,btn){
-  ['data','report','history','backup','settings'].forEach(x=>{
-    $('tab-'+x).classList.toggle('hidden',x!==name);
-  });
-  document.querySelectorAll('.tabs button').forEach(b=>{
-    b.classList.toggle('active',b===btn);
-  });
+['data','report','history','backup','settings'].forEach(x=>
+$('tab-'+x).classList.toggle('hidden',x!==name)
+);
+document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b===btn));
 }
 
-function csvCell(v){
-  return '"'+String(v??'').replace(/"/g,'""')+'"';
-}
-
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
 function download(content,type,name){
-  const blob=new Blob([content],{type});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1500);
+let blob=new Blob([content],{type});
+let url=URL.createObjectURL(blob);
+let a=document.createElement('a');
+a.href=url;a.download=name;
+document.body.appendChild(a);a.click();a.remove();
+URL.revokeObjectURL(url);
 }
 
 function exportCSV(){
-  const y=$('yearSelect').value;
-  const rows=[['NOP','Nama','Alamat','Luas Tanah','Nominal Pajak','Status','Tanggal Bayar']];
-
-  taxpayers.forEach(t=>{
-    const p=payOf(t);
-    rows.push([
-      t.nop,t.nama,t.alamat,t.luas_tanah,t.nominal_pajak,
-      p?.status||'Belum Lunas',p?.tanggal_bayar||''
-    ]);
-  });
-
-  const csv='\uFEFF'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');
-  download(csv,'text/csv;charset=utf-8','Laporan_PBB_Sewan_'+y+'.csv');
+let y=$('yearSelect').value;
+let rows=[['NOP','Nama','Alamat','Luas Tanah','Nominal Pajak','Status','Tanggal Bayar']];
+taxpayers.forEach(t=>{
+let p=payOf(t);
+rows.push([t.nop,t.nama,t.alamat,t.luas_tanah,t.nominal_pajak,p?.status||'Belum Lunas',p?.tanggal_bayar||'']);
+});
+let csv='\uFEFF'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');
+download(csv,'text/csv;charset=utf-8','Laporan_PBB_Sewan_'+y+'.csv');
 }
 
 async function backupData(){
-  try{
-    const {data,error}=await db.rpc('backup_pbb_data');
-    if(error)throw error;
-    download(
-      JSON.stringify(data,null,2),
-      'application/json',
-      'Backup_PBB_Sewan_'+today()+'.json'
-    );
-    msg('Backup berhasil dibuat.');
-  }catch(e){
-    msg('Backup gagal: '+e.message,true);
-  }
+let {data,error}=await db.rpc('backup_pbb_data');
+if(error)return msg('Backup gagal: '+error.message,true);
+download(JSON.stringify(data,null,2),'application/json','Backup_PBB_Sewan_'+today()+'.json');
+msg('Backup berhasil dibuat.');
 }
 
 async function restoreData(){
-  const file=$('restoreFile').files[0];
-  if(!file)return msg('Pilih file backup JSON dahulu.',true);
-  if(!confirm('Pulihkan data dari file ini? Data yang sudah ada tidak akan ditimpa.'))return;
-
-  try{
-    const obj=JSON.parse(await file.text());
-    const {data,error}=await db.rpc('restore_pbb_data',{p_backup:obj});
-    if(error)throw error;
-
-    await loadData();
-    msg('Pemulihan selesai. Wajib pajak baru: '+
-      (data?.wajib_pajak_ditambahkan??0)+
-      ', pembayaran baru: '+(data?.pembayaran_ditambahkan??0)
-    );
-    $('restoreFile').value='';
-  }catch(e){
-    msg('Pemulihan gagal: '+e.message,true);
-  }
+let f=$('restoreFile').files[0];
+if(!f)return msg('Pilih file backup JSON dahulu.',true);
+if(!confirm('Pulihkan data dari file ini? Data yang sudah ada tidak akan ditimpa.'))return;
+try{
+let obj=JSON.parse(await f.text());
+let {data,error}=await db.rpc('restore_pbb_data',{p_backup:obj});
+if(error)throw error;
+await loadData();
+msg('Pemulihan selesai. Wajib pajak baru: '+(data?.wajib_pajak_ditambahkan??0)+', pembayaran baru: '+(data?.pembayaran_ditambahkan??0));
+$('restoreFile').value='';
+}catch(e){msg('Pemulihan gagal: '+e.message,true)}
 }
 
 function fillHistorySelect(){
-  const old=$('historyPerson').value;
-  $('historyPerson').innerHTML='<option value="">Pilih wajib pajak</option>'+
-    taxpayers.map(t=>
-      `<option value="${esc(t.id)}">${esc(t.nama)} — ${esc(t.nop)}</option>`
-    ).join('');
-
-  if(taxpayers.some(t=>String(t.id)===String(old))){
-    $('historyPerson').value=old;
-  }
+let old=$('historyPerson').value;
+$('historyPerson').innerHTML='<option value="">Pilih wajib pajak</option>'+
+taxpayers.map(t=>`<option value="${t.id}">${esc(t.nama)} — ${esc(t.nop)}</option>`).join('');
+if(taxpayers.some(t=>t.id===old))$('historyPerson').value=old;
 }
 
 function loadHistory(){
-  const id=$('historyPerson').value;
-  if(!id){
-    $('historyResult').innerHTML='';
-    return;
-  }
-
-  const t=taxpayers.find(x=>String(x.id)===String(id));
-  if(!t)return;
-
-  const rows=allPayments
-    .filter(p=>String(p.wajib_pajak_id)===String(id))
-    .sort((a,b)=>Number(b.tahun)-Number(a.tahun));
-
-  $('historyResult').innerHTML=`
-    <div class="person">
-      <strong>${esc(t.nama)}</strong>
-      <small>NOP: ${esc(t.nop)}<br>Alamat: ${esc(t.alamat||'-')}</small>
-    </div>
-    <div class="tablewrap">
-    <table>
-      <thead><tr><th>Tahun</th><th>Status</th><th>Jumlah Bayar</th><th>Tanggal</th></tr></thead>
-      <tbody>
-      ${rows.map(p=>`<tr>
-        <td>${esc(p.tahun)}</td>
-        <td class="${p.status==='Lunas'?'paid':'unpaid'}">${esc(p.status)}</td>
-        <td>${money(p.jumlah_bayar)}</td>
-        <td>${esc(p.tanggal_bayar||'-')}</td>
-      </tr>`).join('')}
-      </tbody>
-    </table>
-    </div>`;
+let id=$('historyPerson').value;
+if(!id){$('historyResult').innerHTML='';return}
+let t=taxpayers.find(x=>x.id===id);
+let rows=allPayments.filter(p=>p.wajib_pajak_id===id).sort((a,b)=>b.tahun-a.tahun);
+$('historyResult').innerHTML=`<p><strong>${esc(t?.nama||'')}</strong></p>`+
+(rows.length?
+`<div class="tablewrap"><table>
+<tr><th>Tahun</th><th>Status</th><th>Nominal Bayar</th><th>Tanggal</th></tr>
+${rows.map(p=>`<tr><td>${p.tahun}</td><td>${esc(p.status)}</td><td>${money(p.jumlah_bayar)}</td><td>${esc(p.tanggal_bayar||'-')}</td></tr>`).join('')}
+</table></div>`:
+'<p class="muted">Belum ada riwayat pembayaran.</p>');
 }
 
 async function changePin(){
-  const old=$('oldPin').value;
-  const pin=$('newPin').value;
-  const pin2=$('newPin2').value;
-
-  if(!/^\d{4,12}$/.test(pin))return msg('PIN baru harus 4 sampai 12 angka.',true);
-  if(pin!==pin2)return msg('Ulangan PIN baru tidak sama.',true);
-
-  try{
-    const oldHash=await hashPin(old,localStorage.getItem('pbb_pin_salt')||'');
-    if(oldHash!==localStorage.getItem('pbb_pin_hash')){
-      return msg('PIN lama salah.',true);
-    }
-
-    await savePin(pin);
-    ['oldPin','newPin','newPin2'].forEach(x=>$(x).value='');
-    msg('PIN berhasil diganti.');
-  }catch(e){
-    msg('Gagal mengganti PIN: '+e.message,true);
-  }
+let old=$('oldPin').value,n=$('newPin').value,n2=$('newPin2').value;
+if(!/^\d{4,12}$/.test(n))return msg('PIN baru harus 4–12 angka.',true);
+if(n!==n2)return msg('Ulangan PIN baru tidak sama.',true);
+let h=await hashPin(old,localStorage.getItem('pbb_pin_salt')||'');
+if(h!==localStorage.getItem('pbb_pin_hash'))return msg('PIN lama salah.',true);
+let s=crypto.randomUUID();
+localStorage.setItem('pbb_pin_salt',s);
+localStorage.setItem('pbb_pin_hash',await hashPin(n,s));
+['oldPin','newPin','newPin2'].forEach(x=>$(x).value='');
+msg('PIN berhasil diganti pada perangkat ini.');
 }
 
-async function resetPinVerified(){
-  const btn=$('resetPinBtn');
-  if(busy)return;
+$('connectBtn').onclick=connect;
+$('loginBtn').onclick=login;
+$('pinBtn').onclick=pinAction;
+$('pinLogout').onclick=logout;
+$('logoutBtn').onclick=logout;
+$('saveTaxBtn').onclick=saveTaxpayer;
+$('resetFormBtn').onclick=resetForm;
+$('search').oninput=renderPeople;
+$('yearSelect').onchange=loadData;
+$('csvBtn').onclick=exportCSV;
+$('printBtn').onclick=()=>window.print();
+$('backupBtn').onclick=backupData;
+$('restoreBtn').onclick=restoreData;
+$('changePinBtn').onclick=changePin;
+$('historyPerson').onchange=loadHistory;
 
-  const email=$('resetEmail').value.trim();
-  const password=$('resetPassword').value;
-  const pin=$('resetNewPin').value;
-  const pin2=$('resetNewPin2').value;
+document.querySelectorAll('.tabs button').forEach(b=>
+b.onclick=()=>showTab(b.dataset.tab,b)
+);
 
-  if(!email||!password)return msg('Email dan password Supabase harus diisi.',true);
-  if(!/^\d{4,12}$/.test(pin))return msg('PIN baru harus 4 sampai 12 angka.',true);
-  if(pin!==pin2)return msg('Ulangan PIN baru tidak sama.',true);
-  if(!currentUser)return msg('Sesi login tidak ditemukan. Silakan login kembali.',true);
-  if(email.toLowerCase()!==String(currentUser.email||'').toLowerCase()){
-    return msg('Email tidak sesuai dengan akun yang sedang login.',true);
-  }
-
-  busy=true;
-  setBusy(btn,true,'Memverifikasi akun...');
-  try{
-    const {data,error}=await db.auth.signInWithPassword({email,password});
-    if(error)throw error;
-    if(!data.user||data.user.id!==currentUser.id){
-      throw new Error('Akun yang diverifikasi tidak sesuai dengan sesi aktif.');
-    }
-
-    await savePin(pin);
-    $('resetPassword').value='';
-    $('resetNewPin').value='';
-    $('resetNewPin2').value='';
-    msg('PIN berhasil direset. Gunakan PIN baru saat membuka aplikasi.');
-  }catch(e){
-    msg('Reset PIN gagal: '+e.message,true);
-  }finally{
-    busy=false;
-    setBusy(btn,false);
-  }
-}
+$('peopleList').addEventListener('click',e=>{
+let b=e.target.closest('button[data-act]');
+if(!b)return;
+let id=b.dataset.id;
+if(b.dataset.act==='pay')togglePayment(id);
+if(b.dataset.act==='edit')editTaxpayer(id);
+if(b.dataset.act==='delete')deleteTaxpayer(id);
+});
 
 async function logout(){
-  try{
-    if(db)await db.auth.signOut();
-  }catch(e){
-    console.warn(e);
-  }
-  currentUser=null;
-  taxpayers=[];
-  payments=[];
-  allPayments=[];
-  $('password').value='';
-  show('loginBox');
-  msg('Anda telah keluar.');
+if(db)await db.auth.signOut();
+currentUser=null;
+taxpayers=[];payments=[];allPayments=[];
+show('loginBox');
 }
 
-async function boot(){
-  loadConfigFields();
-
-  if(!localStorage.getItem('pbb_url')||!localStorage.getItem('pbb_key')){
-    show('connection');
-    return;
-  }
-
-  try{
-    db=getClient();
-    const {data,error}=await db.auth.getSession();
-    if(error)throw error;
-
-    if(data.session?.user){
-      currentUser=data.session.user;
-      await pinGate();
-    }else{
-      show('loginBox');
-    }
-  }catch(e){
-    show('connection');
-    msg('Koneksi belum siap: '+e.message,true);
-  }
-}
-
-/* Semua tombol dihubungkan di sini */
-$('connectBtn').addEventListener('click',connect);
-$('loginBtn').addEventListener('click',login);
-$('pinBtn').addEventListener('click',pinAction);
-$('pinLogout').addEventListener('click',logout);
-$('logoutBtn').addEventListener('click',logout);
-$('saveTaxBtn').addEventListener('click',saveTaxpayer);
-$('resetFormBtn').addEventListener('click',resetForm);
-$('search').addEventListener('input',renderPeople);
-$('yearSelect').addEventListener('change',loadData);
-$('historyPerson').addEventListener('change',loadHistory);
-$('csvBtn').addEventListener('click',exportCSV);
-$('printBtn').addEventListener('click',()=>window.print());
-$('backupBtn').addEventListener('click',backupData);
-$('restoreBtn').addEventListener('click',restoreData);
-$('changePinBtn').addEventListener('click',changePin);
-$('resetPinBtn').addEventListener('click',resetPinVerified);
-
-document.querySelectorAll('.tabs button').forEach(btn=>{
-  btn.addEventListener('click',()=>showTab(btn.dataset.tab,btn));
-});
-
-$('peopleList').addEventListener('click',event=>{
-  const btn=event.target.closest('button[data-act]');
-  if(!btn)return;
-
-  const id=btn.dataset.id;
-  const action=btn.dataset.act;
-
-  if(action==='pay')togglePayment(id);
-  if(action==='edit')editTaxpayer(id);
-  if(action==='delete')deleteTaxpayer(id);
-});
-
-document.addEventListener('keydown',event=>{
-  if(event.key==='Enter'){
-    if(!$('loginBox').classList.contains('hidden')){
-      login();
-    }else if(!$('pinBox').classList.contains('hidden')){
-      pinAction();
-    }
-  }
-});
-
-/* Tampilkan pesan jika library gagal dimuat */
-if(!window.supabase){
-  show('connection');
-  msg('Library Supabase belum termuat. Periksa koneksi internet lalu muat ulang halaman.',true);
-}else{
-  boot();
-}
+(async()=>{
+if(cfg()){
+$('projectUrl').value=localStorage.getItem('pbb_url');
+$('publishableKey').value=localStorage.getItem('pbb_key');
+db=createClient($('projectUrl').value,$('publishableKey').value);
+let {data,error}=await db.auth.getSession();
+if(error){show('loginBox');return}
+if(data.session){
+currentUser=data.session.user;
+await pinGate();
+}else show('loginBox');
+}else show('connection');
+})();
 </script>
 </body>
 </html>
