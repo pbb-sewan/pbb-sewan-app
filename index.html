@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#14532d">
-<title>PBB SEWAN 4.0</title>
+<title>PBB SEWAN 5.0</title>
 <style>
 :root{--g:#14532d;--g2:#166534;--bg:#f3f6f4;--line:#e2e8e5}
 *{box-sizing:border-box}
@@ -49,7 +49,7 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:15px}
 </head>
 <body>
 <header>
-<h1>🏡 PBB SEWAN 4.0</h1>
+<h1>🏡 PBB SEWAN 5.0</h1>
 <p>Sistem Administrasi Pajak Bumi dan Bangunan</p>
 </header>
 
@@ -88,7 +88,6 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:15px}
 </section>
 
 <section id="app" class="hidden">
-
 <div class="card">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
 <div>
@@ -97,10 +96,8 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:15px}
 </div>
 <button class="danger" id="logoutBtn">Keluar</button>
 </div>
-
 <label>Tahun pembayaran</label>
 <select id="yearSelect"></select>
-
 <div class="grid">
 <div class="stat"><small>Jumlah Wajib Pajak</small><strong id="totalPeople">0</strong></div>
 <div class="stat"><small>Total Nominal Pajak</small><strong id="totalTax">Rp0</strong></div>
@@ -131,7 +128,6 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:15px}
 <button id="saveTaxBtn">Simpan Data</button>
 <button class="secondary" id="resetFormBtn">Bersihkan</button>
 </div>
-
 <div class="card">
 <h2>Daftar Wajib Pajak</h2>
 <input id="search" placeholder="Cari NOP, nama, atau alamat...">
@@ -160,9 +156,7 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:15px}
 <section id="tab-history" class="hidden">
 <div class="card">
 <h2>Riwayat Pembayaran</h2>
-<select id="historyPerson">
-<option value="">Pilih wajib pajak</option>
-</select>
+<select id="historyPerson"><option value="">Pilih wajib pajak</option></select>
 <div id="historyResult"></div>
 </div>
 </section>
@@ -193,16 +187,32 @@ footer{text-align:center;color:#94a3b8;font-size:11px;padding:15px}
 <button id="changePinBtn">Ganti PIN</button>
 <div class="notice">PIN adalah pengunci tambahan pada browser/perangkat, bukan pengganti login Supabase.</div>
 </div>
+
+<div class="card">
+<h2>Reset PIN karena Lupa</h2>
+<p class="muted">Verifikasi ulang akun Supabase untuk membuat PIN baru tanpa PIN lama.</p>
+<label>Email akun Supabase</label>
+<input id="resetEmail" type="email" autocomplete="username">
+<label>Password akun Supabase</label>
+<input id="resetPassword" type="password" autocomplete="current-password">
+<label>PIN baru</label>
+<input id="resetNewPin" type="password" inputmode="numeric" maxlength="12">
+<label>Ulangi PIN baru</label>
+<input id="resetNewPin2" type="password" inputmode="numeric" maxlength="12">
+<button class="orange" id="resetPinBtn">Verifikasi dan Reset PIN</button>
+<div class="notice">Reset PIN hanya berlaku pada browser/perangkat ini. Password diverifikasi langsung oleh Supabase dan tidak disimpan oleh aplikasi.</div>
+</div>
+
 <div class="card">
 <h2>Informasi Aplikasi</h2>
-<p class="muted">PBB SEWAN 4.0 · Database Supabase · Sinkronisasi online.</p>
+<p class="muted">PBB SEWAN 5.0 · Database Supabase · Sinkronisasi online.</p>
 <p class="muted">Data pembayaran tahun baru disiapkan saat tahun tersebut dibuka di aplikasi.</p>
 </div>
 </section>
 </section>
 </main>
 
-<footer>PBB SEWAN 4.0 · Administrasi Dusun Sewan</footer>
+<footer>PBB SEWAN 5.0 · Administrasi Dusun Sewan</footer>
 
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
@@ -252,6 +262,7 @@ password:$('password').value
 });
 if(error)return msg(error.message,true);
 currentUser=data.user;
+$('password').value='';
 await pinGate();
 }
 
@@ -439,7 +450,10 @@ msg('Data berhasil dihapus.');
 }
 
 async function togglePayment(id){
-let t=taxpayers.find(x=>x.id===id),p=payOf(t),done=p?.status==='Lunas';
+let t=taxpayers.find(x=>x.id===id);
+if(!t)return;
+let p=payOf(t),done=p?.status==='Lunas';
+if(!p)return msg('Data pembayaran tahun ini tidak ditemukan. Muat ulang aplikasi.',true);
 if(done){
 if(!confirm('Batalkan status lunas untuk wajib pajak ini?'))return;
 let {error}=await db.from('pembayaran_pbb').update({
@@ -473,7 +487,7 @@ let url=URL.createObjectURL(blob);
 let a=document.createElement('a');
 a.href=url;a.download=name;
 document.body.appendChild(a);a.click();a.remove();
-URL.revokeObjectURL(url);
+setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 function exportCSV(){
@@ -519,78 +533,4 @@ function loadHistory(){
 let id=$('historyPerson').value;
 if(!id){$('historyResult').innerHTML='';return}
 let t=taxpayers.find(x=>x.id===id);
-let rows=allPayments.filter(p=>p.wajib_pajak_id===id).sort((a,b)=>b.tahun-a.tahun);
-$('historyResult').innerHTML=`<p><strong>${esc(t?.nama||'')}</strong></p>`+
-(rows.length?
-`<div class="tablewrap"><table>
-<tr><th>Tahun</th><th>Status</th><th>Nominal Bayar</th><th>Tanggal</th></tr>
-${rows.map(p=>`<tr><td>${p.tahun}</td><td>${esc(p.status)}</td><td>${money(p.jumlah_bayar)}</td><td>${esc(p.tanggal_bayar||'-')}</td></tr>`).join('')}
-</table></div>`:
-'<p class="muted">Belum ada riwayat pembayaran.</p>');
-}
-
-async function changePin(){
-let old=$('oldPin').value,n=$('newPin').value,n2=$('newPin2').value;
-if(!/^\d{4,12}$/.test(n))return msg('PIN baru harus 4–12 angka.',true);
-if(n!==n2)return msg('Ulangan PIN baru tidak sama.',true);
-let h=await hashPin(old,localStorage.getItem('pbb_pin_salt')||'');
-if(h!==localStorage.getItem('pbb_pin_hash'))return msg('PIN lama salah.',true);
-let s=crypto.randomUUID();
-localStorage.setItem('pbb_pin_salt',s);
-localStorage.setItem('pbb_pin_hash',await hashPin(n,s));
-['oldPin','newPin','newPin2'].forEach(x=>$(x).value='');
-msg('PIN berhasil diganti pada perangkat ini.');
-}
-
-$('connectBtn').onclick=connect;
-$('loginBtn').onclick=login;
-$('pinBtn').onclick=pinAction;
-$('pinLogout').onclick=logout;
-$('logoutBtn').onclick=logout;
-$('saveTaxBtn').onclick=saveTaxpayer;
-$('resetFormBtn').onclick=resetForm;
-$('search').oninput=renderPeople;
-$('yearSelect').onchange=loadData;
-$('csvBtn').onclick=exportCSV;
-$('printBtn').onclick=()=>window.print();
-$('backupBtn').onclick=backupData;
-$('restoreBtn').onclick=restoreData;
-$('changePinBtn').onclick=changePin;
-$('historyPerson').onchange=loadHistory;
-
-document.querySelectorAll('.tabs button').forEach(b=>
-b.onclick=()=>showTab(b.dataset.tab,b)
-);
-
-$('peopleList').addEventListener('click',e=>{
-let b=e.target.closest('button[data-act]');
-if(!b)return;
-let id=b.dataset.id;
-if(b.dataset.act==='pay')togglePayment(id);
-if(b.dataset.act==='edit')editTaxpayer(id);
-if(b.dataset.act==='delete')deleteTaxpayer(id);
-});
-
-async function logout(){
-if(db)await db.auth.signOut();
-currentUser=null;
-taxpayers=[];payments=[];allPayments=[];
-show('loginBox');
-}
-
-(async()=>{
-if(cfg()){
-$('projectUrl').value=localStorage.getItem('pbb_url');
-$('publishableKey').value=localStorage.getItem('pbb_key');
-db=createClient($('projectUrl').value,$('publishableKey').value);
-let {data,error}=await db.auth.getSession();
-if(error){show('loginBox');return}
-if(data.session){
-currentUser=data.session.user;
-await pinGate();
-}else show('loginBox');
-}else show('connection');
-})();
-</script>
-</body>
-</html>
+let row
