@@ -402,8 +402,8 @@ function printOwnerReport(){
 $("printOwnerReportBtn").onclick=()=>{try{printOwnerReport();}catch(e){alert(e.message);}};
 
 function csvDownload(filename,rows){
- const csv=rows.map(row=>row.map(v=>{const value=String(v??"");return '"'+value.split('"').join('""')+'"';}).join(",")).join("\\r\\n");
- const blob=new Blob(["\\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+ const csv=rows.map(row=>row.map(v=>{const value=String(v??"");return '"'+value.split('"').join('""')+'"';}).join(",")).join("\r\n");
+ const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function exportReportCsv(){
