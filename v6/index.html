@@ -449,7 +449,7 @@ function csvDownload(filename,rows){
  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-async function exportRowsJpg(rows,title,filename){
+async async function exportRowsJpg(rows,title,filename){
  if(!rows.length)throw Error("Tidak ada data untuk diekspor.");
  if(typeof window.html2canvas!=="function")throw Error("Komponen ekspor gambar belum termuat. Periksa koneksi internet lalu muat ulang.");
  const wrap=document.createElement("div");
