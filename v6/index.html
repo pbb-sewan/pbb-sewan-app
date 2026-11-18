@@ -233,7 +233,7 @@ async function loadWorkData(){
  if(prepError)throw prepError;
  const [dash,wp,pay]=await Promise.all([
   db.from("pbb_dashboard_ringkasan").select("*").eq("dusun_id",activeDusunId).eq("tahun",year).maybeSingle(),
-  db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,catatan,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
+  db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,catatan,foto_bukti,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
   db.from("pembayaran_pbb").select("id,wajib_pajak_id,tahun,status,tanggal_bayar,jumlah_bayar,metode_bayar,status_setoran,petugas_penerima,last_device,updated_at").eq("dusun_id",activeDusunId).eq("tahun",year)
  ]);
  if(dash.error)throw dash.error;if(wp.error)throw wp.error;if(pay.error)throw pay.error;
@@ -261,7 +261,9 @@ function renderWp(){
   const payBtn=document.createElement("button");payBtn.textContent=p?.status==="Lunas"?"Batalkan Lunas":"Catat Lunas";payBtn.onclick=()=>togglePayment(w,p);
   const editBtn=document.createElement("button");editBtn.textContent="Edit";editBtn.className="secondary";editBtn.onclick=()=>editWp(w);
   const delBtn=document.createElement("button");delBtn.textContent="Hapus";delBtn.className="danger";delBtn.onclick=()=>deleteWp(w);
-  actions.append(payBtn,editBtn,delBtn);box.append(top,detail,actions);host.append(box);
+  const photoBtn=document.createElement("button");photoBtn.textContent="Unggah Foto Bukti";photoBtn.className="secondary";photoBtn.onclick=()=>chooseEvidence(w);
+ if(w.foto_bukti){const viewBtn=document.createElement("button");viewBtn.textContent="Lihat Foto";viewBtn.className="secondary";viewBtn.onclick=()=>viewEvidence(w).catch(e=>alert(e.message));actions.append(viewBtn);}
+ actions.append(payBtn,editBtn,delBtn,photoBtn);box.append(top,detail,actions);host.append(box);
  });
 }
 async function addWp(){
@@ -273,7 +275,27 @@ async function addWp(){
  ["wpNop","wpNopd","wpNama","wpPemilik","wpRT","wpLuas","wpNominal","wpLetak","wpCatatan"].forEach(id=>$(id).value="");
  await loadWorkData();msg("wpMsg","Wajib pajak berhasil ditambahkan.",true);
 }
-async function togglePayment(w,p){
+
+async function chooseEvidence(w){
+ const picker=document.createElement("input");picker.type="file";picker.accept="image/jpeg,image/png,image/webp";
+ picker.onchange=async()=>{const file=picker.files?.[0];if(!file)return;
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("Format foto harus JPG, PNG, atau WebP.");
+  if(file.size>5*1024*1024)throw new Error("Ukuran foto maksimal 5 MB.");
+  const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+  const path=activeDusunId+"/"+w.id+"/"+Date.now()+"."+ext;
+  const {error:uploadError}=await db.storage.from("pbb-bukti").upload(path,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;
+  const {error:updateError}=await db.from("wajib_pajak").update({foto_bukti:path,last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);
+  if(updateError)throw updateError;
+  await loadWorkData();alert("Foto bukti berhasil disimpan.");
+ };
+ picker.click();
+}
+async function viewEvidence(w){
+ if(!w.foto_bukti)throw Error("Belum ada foto bukti.");
+ const {data,error}=await db.storage.from("pbb-bukti").createSignedUrl(w.foto_bukti,300);if(error)throw error;
+ window.open(data.signedUrl,"_blank","noopener");
+}
+\nasync function togglePayment(w,p){
  if(!p)throw Error("Data pembayaran tahun ini belum terbentuk. Muat ulang dahulu.");
  if(p.status==="Lunas"){
   if(!confirm("Batalkan status lunas untuk "+w.nama+"?"))return;
