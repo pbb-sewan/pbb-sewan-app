@@ -26,6 +26,7 @@ button.danger{background:var(--red)}
 button.warning{background:var(--orange)}
 button.success{background:#15803d}
 .row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.dashboard-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dashboard-stats>.item{margin:0;min-width:0}
+ .progress-card{margin-top:10px}.progress-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px}.progress-track{height:13px;background:#e2e8f0;border-radius:20px;overflow:hidden}.progress-fill{height:100%;width:0;background:var(--green);border-radius:20px;transition:width .25s ease}
 .row>*{flex:1 1 180px;min-width:0}
 header{background:var(--green);color:#fff;padding:18px 14px;text-align:center}
 header h1{font-size:22px;margin:0 0 5px}header p{margin:0;font-size:12px;opacity:.9}
@@ -134,7 +135,10 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
   <div class="item"><div class="muted">Sudah lunas</div><h2 id="sumPaid">Rp0</h2><small id="pctPaid">0% dari nominal target</small></div>
   <div class="item"><div class="muted">Belum lunas</div><h2 id="sumUnpaid">Rp0</h2><small id="pctUnpaid">0% dari nominal target</small></div>
   <div class="item"><div class="muted">Wajib pajak</div><h2 id="sumCount">0</h2></div>
+  <div class="item"><div class="muted">WP sudah lunas</div><h2 id="sumPaidCount">0</h2></div>
+  <div class="item"><div class="muted">WP belum lunas</div><h2 id="sumUnpaidCount">0</h2></div>
  </div>
+ <div class="item progress-card"><div class="progress-head"><span>Progres pembayaran</span><span id="progressPercent">0%</span></div><div class="progress-track" role="progressbar" aria-label="Progres pembayaran PBB" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="paymentProgress" class="progress-fill"></div></div></div>
  <nav class="nav no-print" aria-label="Menu dashboard">
   <button type="button" class="active" data-work-tab="wpTab">Wajib Pajak</button>
   <button type="button" data-work-tab="reportTab">Laporan</button>
@@ -388,8 +392,15 @@ async function loadWorkData(){
  wpRows=wp.data||[];paymentRows=pay.data||[];
  const d=dash.data||{};
  $("sumTarget").textContent=rupiah(d.total_target);$("sumPaid").textContent=rupiah(d.total_lunas);$("sumUnpaid").textContent=rupiah(d.total_belum_lunas);
- $("sumCount").textContent=String(d.jumlah_wajib_pajak||wpRows.length);
- $("pctPaid").textContent=Number(d.persen_lunas||0).toLocaleString("id-ID",{maximumFractionDigits:2})+"% dari nominal target";$("pctUnpaid").textContent=Number(d.persen_belum_lunas||0).toLocaleString("id-ID",{maximumFractionDigits:2})+"% dari nominal target";
+ $("sumCount").textContent=String(d.jumlah_wajib_pajak??wpRows.length);
+ const paidWpIds=new Set(paymentRows.filter(p=>p.status==="Lunas").map(p=>p.wajib_pajak_id));
+ const paidWpCount=wpRows.filter(w=>paidWpIds.has(w.id)).length;
+ const unpaidWpCount=Math.max(0,wpRows.length-paidWpCount);
+ $("sumPaidCount").textContent=String(paidWpCount);$("sumUnpaidCount").textContent=String(unpaidWpCount);
+ const paidPercent=Math.max(0,Math.min(100,Number(d.persen_lunas||0)));
+ $("progressPercent").textContent=paidPercent.toLocaleString("id-ID",{maximumFractionDigits:2})+"%";
+ $("paymentProgress").style.width=paidPercent+"%";$("paymentProgress").parentElement.setAttribute("aria-valuenow",String(paidPercent));
+ $("pctPaid").textContent=paidPercent.toLocaleString("id-ID",{maximumFractionDigits:2})+"% dari nominal target";$("pctUnpaid").textContent=Number(d.persen_belum_lunas||0).toLocaleString("id-ID",{maximumFractionDigits:2})+"% dari nominal target";
  renderWp();
 }
 function renderWp(){
