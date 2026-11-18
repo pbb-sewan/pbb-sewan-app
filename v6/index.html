@@ -78,6 +78,12 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <label>Dusun</label><select id="createDusunSelect"><option value="">Pilih dusun</option></select>
 <label>Wilayah RT (pisahkan koma)</label><input id="createRT" placeholder="RT 01, RT 02">
 <button id="createAccountBtn">Buat Akun Kepala Dusun</button><div id="createAccountMsg" class="msg hidden"></div>
+<hr><h3>Atur wilayah RT Kepala Dusun</h3>
+<label>Dusun</label><select id="rtManageDusun"><option value="">Pilih dusun</option></select>
+<label>Akun Kepala Dusun</label><select id="rtManageMember"><option value="">Pilih akun</option></select>
+<label>Tambah RT</label><input id="rtManageValue" placeholder="RT 03">
+<button id="rtManageAddBtn">Tambahkan RT</button>
+<div id="rtManageList" class="muted"></div><div id="rtManageMsg" class="msg hidden"></div>
 </section>
 
 <section id="kadusCard" class="card hidden">
@@ -152,6 +158,41 @@ async function routeUser(){
  else if(role==="admin_dusun"){show("kadusCard",true);await loadKadus();}
  else{show("applyCard",true);$("applyName").value=user.user_metadata?.full_name||"";}
 }
+
+let adminMemberRows=[];
+async function loadAdminRTMembers(){
+ const {data,error}=await db.rpc("pbb_admin_list_members");if(error)throw error;
+ adminMemberRows=(data||[]).filter(x=>x.role==="admin_dusun");
+ const ds=$("rtManageDusun");ds.innerHTML='<option value="">Pilih dusun</option>';
+ dusunRows.forEach(d=>{const o=document.createElement("option");o.value=d.id;o.textContent=d.nama;ds.append(o);});
+ await renderAdminRTMembers();
+}
+async function renderAdminRTMembers(){
+ const dusunId=$("rtManageDusun").value;
+ const members=adminMemberRows.filter(m=>m.dusun_id===dusunId);
+ const sel=$("rtManageMember");sel.innerHTML='<option value="">Pilih akun Kepala Dusun</option>';
+ members.forEach(m=>{const o=document.createElement("option");o.value=m.user_id;o.textContent=m.user_id.slice(0,8)+"… ("+(m.is_active?"aktif":"nonaktif")+")";sel.append(o);});
+ await loadAdminRTList();
+}
+async function loadAdminRTList(){
+ const dusunId=$("rtManageDusun").value,userId=$("rtManageMember").value;
+ const host=$("rtManageList");host.innerHTML="";
+ if(!dusunId||!userId){host.textContent="Pilih dusun dan akun Kepala Dusun.";return;}
+ const {data,error}=await db.from("pbb_dusun_rt").select("id,rt,is_active").eq("dusun_id",dusunId).eq("user_id",userId).order("rt");
+ if(error)throw error;
+ if(!data?.length){host.textContent="Belum ada RT yang ditetapkan.";return;}
+ data.forEach(x=>{const row=document.createElement("div");row.className="item";const label=document.createElement("span");label.textContent=x.rt+(x.is_active?"":" (nonaktif)");const del=document.createElement("button");del.className="danger";del.textContent="Hapus";del.onclick=async()=>{if(!confirm("Hapus penugasan "+x.rt+"?"))return;const {error}=await db.from("pbb_dusun_rt").delete().eq("id",x.id);if(error)alert(error.message);else loadAdminRTList().catch(e=>alert(e.message));};row.append(label,del);host.append(row);});
+}
+async function addAdminRT(){
+ const dusunId=$("rtManageDusun").value,userId=$("rtManageMember").value,rt=$("rtManageValue").value.trim();
+ if(!dusunId||!userId||!rt)throw Error("Dusun, akun, dan RT wajib dipilih/diisi.");
+ const {error}=await db.from("pbb_dusun_rt").insert({dusun_id:dusunId,user_id:userId,rt,is_active:true});if(error)throw error;
+ $("rtManageValue").value="";await loadAdminRTList();msg("rtManageMsg","Wilayah RT berhasil ditambahkan.",true);
+}
+$("rtManageDusun").onchange=()=>renderAdminRTMembers().catch(e=>msg("rtManageMsg",e.message));
+$("rtManageMember").onchange=()=>loadAdminRTList().catch(e=>msg("rtManageMsg",e.message));
+$("rtManageAddBtn").onclick=()=>addAdminRT().catch(e=>msg("rtManageMsg",e.message));
+
 async function loadAdmin(){
  const [req,dus]=await Promise.all([
   db.from("pbb_permohonan_kadus").select("*").order("dibuat_pada",{ascending:false}),
@@ -159,6 +200,7 @@ async function loadAdmin(){
  ]);
  if(req.error)throw req.error;if(dus.error)throw dus.error;
  dusunRows=dus.data||[];
+ await loadAdminRTMembers();
  $("requestsList").innerHTML="";
  if(!req.data?.length)$("requestsList").textContent="Belum ada permohonan.";
  for(const x of req.data||[]){
