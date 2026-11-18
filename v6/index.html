@@ -121,7 +121,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <div id="wpList" class="muted">Pilih dusun terlebih dahulu.</div>
  <div class="row"><button id="wpPagePrev" class="secondary">Sebelumnya</button><span id="wpPageInfo">Halaman 1</span><button id="wpPageNext" class="secondary">Berikutnya</button></div>
 <hr><h3>Laporan dan cetak</h3>
-<div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div><div><label>Filter metode</label><select id="reportMethod"><option value="all">Semua metode</option><option value="Khanief">Tunai</option><option value="Online">Online</option></select></div></div>
+<div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
 <button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button> <button id="exportReportJpgBtn" class="secondary">Ekspor JPG</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
 <hr><h3>Rekap posisi uang</h3>
@@ -504,7 +504,7 @@ function exportSelectedJpg(){
 function printSelectedReceipts(){
  const rows=wpRows.filter(w=>selectedWpIds.has(w.id)).map(w=>({w,p:paymentRows.find(x=>x.wajib_pajak_id===w.id)})).filter(x=>x.p?.status==="Lunas");
  if(!rows.length)throw Error("Tidak ada wajib pajak lunas yang dipilih.");
- const cards=rows.map(({w,p})=>"<section class='receipt'><h2>BUKTI PEMBAYARAN PBB</h2><p>Dusun: "+esc($("workDusunLabel").textContent)+"</p><p>NOP: "+esc(w.nop)+"</p><p>Nama: "+esc(w.nama)+"</p><p>RT: "+esc(w.rt||"-")+"</p><hr><p>Tahun: "+esc(p.tahun)+"</p><p>Tanggal bayar: "+esc(dateFmt(p.tanggal_bayar))+"</p><p>Jumlah dibayar: <b>"+rupiah(p.jumlah_bayar)+"</b></p><p>Metode: "+esc(p.metode_bayar==="Khanief"?"Tunai":(p.metode_bayar||"-"))+"</p><p>Status setoran: "+esc(p.status_setoran||"-")+"</p><p>Terima Kasih</p></section>").join("");
+ const cards=rows.map(({w,p})=>"<section class='receipt'><h2>BUKTI PEMBAYARAN PBB</h2><p>Dusun: "+esc($("workDusunLabel").textContent)+"</p><p>NOP: "+esc(w.nop)+"</p><p>Nama: "+esc(w.nama)+"</p><p>RT: "+esc(w.rt||"-")+"</p><hr><p>Tahun: "+esc(p.tahun)+"</p><p>Tanggal bayar: "+esc(dateFmt(p.tanggal_bayar))+"</p><p>Jumlah dibayar: <b>"+rupiah(p.jumlah_bayar)+"</b></p><p>Terima Kasih</p></section>").join("");
  const win=window.open("","_blank");if(!win)throw Error("Izinkan pop-up untuk mencetak.");
  win.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Bukti Pembayaran PBB</title><style>body{font:14px Arial;padding:18px}.receipt{border:1px solid #555;padding:20px;margin:0 auto 20px;max-width:700px;break-after:page}.receipt:last-child{break-after:auto}h2{text-align:center}</style></head><body>"+cards+"<script>window.onload=()=>window.print()<\\/script></body></html>");win.document.close();setTimeout(()=>win.print(),300);
 }
@@ -563,8 +563,8 @@ async function loadReport(){
  let q=db.from("pbb_laporan_tahunan").select("*").eq("dusun_id",activeDusunId).eq("tahun",Number($("workYear").value)).order("nama");
  const rt=$("reportRT").value.trim();if(rt)q=q.eq("rt",rt);
  const {data,error}=await q;if(error)throw error;
- const f=$("reportFilter").value,method=$("reportMethod").value;
- reportRows=(data||[]).filter(x=>(f==="all"||x.status_pembayaran===f)&&(method==="all"||x.metode_bayar===method));
+ const f=$("reportFilter").value;
+ reportRows=(data||[]).filter(x=>f==="all"||x.status_pembayaran===f);
  const total=reportRows.reduce((a,x)=>a+Number(x.target_pajak||0),0);
  const paid=reportRows.reduce((a,x)=>a+Number(x.nominal_lunas||0),0);
  const held=reportRows.filter(x=>x.metode_bayar==="Khanief"&&x.status_setoran==="Belum Setor").reduce((a,x)=>a+Number(x.jumlah_bayar||0),0);
@@ -612,7 +612,7 @@ async function restoreBackup(){
  await loadWorkData();await loadReport();await loadNotes();msg("backupMsg","Penggabungan backup selesai: "+JSON.stringify(data)+". Data yang tidak ada di backup tidak dihapus.",true);
 }
 $("loadReportBtn").onclick=()=>loadReport().catch(e=>alert(e.message));
-$("reportFilter").onchange=()=>loadReport().catch(e=>alert(e.message));$("reportMethod").onchange=()=>loadReport().catch(e=>alert(e.message));$("reportRT").onchange=()=>loadReport().catch(e=>alert(e.message));
+$("reportFilter").onchange=()=>loadReport().catch(e=>alert(e.message));$("reportRT").onchange=()=>loadReport().catch(e=>alert(e.message));
 $("printReportBtn").onclick=()=>{
  if(!reportRows.length){alert("Tampilkan laporan dahulu.");return;}
  const w=window.open("","_blank");if(!w){alert("Izinkan pop-up untuk mencetak laporan.");return;}
