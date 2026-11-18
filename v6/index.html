@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14532d">
+<title>PBB SEWAN 6.0 — Pengembangan</title>
+<style>
+:root{--g:#14532d;--g2:#166534;--bg:#f3f7f4;--line:#dbe5dd;--ink:#17231b;--muted:#64748b;--red:#b91c1c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px Arial,sans-serif}
+header{background:var(--g);color:#fff;padding:18px 16px}header h1{font-size:21px;margin:0 0 5px}header p{margin:0;color:#d1fae5}
+main{max-width:850px;margin:18px auto;padding:0 12px 40px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px;margin-bottom:14px;box-shadow:0 3px 12px #0000000a}
+h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:16px 0 8px}.muted{color:var(--muted);line-height:1.5}.notice{background:#fff7d6;border:1px solid #f2d98b;padding:11px;border-radius:10px;margin-bottom:14px;line-height:1.45}
+label{display:block;font-weight:700;margin:10px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:#fff}textarea{min-height:74px}
+button{border:0;border-radius:9px;padding:11px 14px;font-weight:700;cursor:pointer;background:var(--g);color:white;margin:5px 5px 5px 0}button.secondary{background:#e2e8f0;color:#17231b}button.danger{background:#991b1b}button:disabled{opacity:.55}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hidden{display:none!important}.msg{padding:10px;border-radius:9px;margin-top:9px;white-space:pre-wrap}.ok{background:#dcfce7;color:#14532d}.err{background:#fee2e2;color:#991b1b}
+.item{border:1px solid var(--line);border-radius:10px;padding:12px;margin:9px 0}.pill{display:inline-block;background:#dcfce7;color:#14532d;padding:4px 8px;border-radius:20px;font-size:12px;font-weight:bold}
+hr{border:0;border-top:1px solid var(--line);margin:15px 0}
+@media(max-width:560px){.row{grid-template-columns:1fr}header h1{font-size:19px}}
+</style>
+</head>
+<body>
+<header><h1>PBB SEWAN 6.0</h1><p>Pengembangan multi-dusun • Tahap akun dan wilayah RT</p></header>
+<main>
+<div class="notice"><b>Versi pengembangan.</b> Aplikasi 5.1 tetap menjadi aplikasi utama. Halaman ini sedang diuji dan belum menggantikan 5.1.</div>
+
+<section id="connectCard" class="card">
+<h2>Hubungkan ke PBB SEWAN</h2>
+<p class="muted">Konfigurasi koneksi Supabase untuk pengujian. Kunci yang digunakan adalah publishable key, bukan service-role key.</p>
+<label>Supabase Project URL</label><input id="sbUrl" type="url" value="https://jikrxatgnqudfskswbae.supabase.co">
+<label>Supabase Publishable Key</label><input id="sbKey" type="password" autocomplete="off" value="sb_publishable_VT3Z4P3_26J5llAOr7Bo1A_-PFJNthn">
+<button id="connectBtn">Hubungkan</button><div id="connectMsg" class="msg hidden"></div>
+</section>
+
+<section id="authCard" class="card hidden">
+<h2>Masuk Admin</h2>
+<label>Email</label><input id="loginEmail" type="email" autocomplete="username">
+<label>Kata sandi</label><input id="loginPassword" type="password" autocomplete="current-password">
+<button id="loginBtn">Login</button>
+<hr>
+<h3>Pendaftaran Kepala Dusun</h3>
+<p class="muted">Buat akun terlebih dahulu. Setelah email dikonfirmasi (jika diminta), login lalu kirim permohonan dengan wilayah RT.</p>
+<label>Nama lengkap</label><input id="signupName" autocomplete="name">
+<label>Email</label><input id="signupEmail" type="email" autocomplete="email">
+<label>Kata sandi</label><input id="signupPassword" type="password" autocomplete="new-password">
+<button id="signupBtn" class="secondary">Buat Akun Kepala Dusun</button>
+<div id="authMsg" class="msg hidden"></div>
+</section>
+
+<section id="changePasswordCard" class="card hidden">
+<h2>Ganti Kata Sandi Sementara</h2>
+<p class="muted">Demi keamanan, Kepala Dusun yang dibuat Admin Utama wajib mengganti kata sandi sementara sebelum menggunakan aplikasi.</p>
+<label>Kata sandi baru (minimal 8 karakter)</label><input id="newPassword" type="password" autocomplete="new-password">
+<label>Ulangi kata sandi baru</label><input id="newPassword2" type="password" autocomplete="new-password">
+<button id="savePasswordBtn">Simpan Kata Sandi Baru</button><div id="passwordMsg" class="msg hidden"></div>
+</section>
+
+<section id="applyCard" class="card hidden">
+<h2>Permohonan Kepala Dusun</h2>
+<p class="muted">Pilih RT yang menjadi wilayah tugas. Permohonan harus disetujui Admin Utama sebelum akun memperoleh akses data.</p>
+<label>Nama lengkap</label><input id="applyName">
+<label>Nama dusun</label><input id="applyDusun">
+<label>Daftar RT (pisahkan dengan koma)</label><input id="applyRT" placeholder="Contoh: RT 01, RT 02, RT 03">
+<button id="applyBtn">Kirim Permohonan</button><div id="applyMsg" class="msg hidden"></div>
+</section>
+
+<section id="adminCard" class="card hidden">
+<div class="row"><div><h2>Panel Admin Utama</h2><span class="pill">ADMIN UTAMA</span></div><div style="text-align:right"><button id="refreshAdminBtn" class="secondary">Muat Ulang</button><button id="logoutAdminBtn" class="secondary">Keluar</button></div></div>
+<h3>Permohonan Kepala Dusun</h3><div id="requestsList" class="muted">Memuat...</div>
+<hr>
+<h3>Daftar Dusun</h3><div id="dusunList" class="muted">Memuat...</div>
+<label>Tambah dusun</label><input id="newDusunName" placeholder="Nama dusun baru"><button id="createDusunBtn">Buat Dusun</button><div id="dusunMsg" class="msg hidden"></div>
+<hr>
+<h3>Buat akun Kepala Dusun</h3>
+<label>Nama lengkap</label><input id="createNama">
+<label>Email akun</label><input id="createEmail" type="email">
+<label>Kata sandi sementara</label><input id="createPassword" type="password">
+<label>Dusun</label><select id="createDusunSelect"><option value="">Pilih dusun</option></select>
+<label>Wilayah RT (pisahkan koma)</label><input id="createRT" placeholder="RT 01, RT 02">
+<button id="createAccountBtn">Buat Akun Kepala Dusun</button><div id="createAccountMsg" class="msg hidden"></div>
+</section>
+
+<section id="kadusCard" class="card hidden">
+<div class="row"><div><h2>Panel Kepala Dusun</h2><span class="pill">ADMIN DUSUN</span></div><div style="text-align:right"><button id="logoutKadusBtn" class="secondary">Keluar</button></div></div>
+<div id="kadusContext" class="item">Memuat wilayah...</div>
+<p class="muted">Tahap ini menguji login, peran, dan pembatasan wilayah RT. Modul wajib pajak, pembayaran, laporan, riwayat, serta backup akan dipasang setelah alur akses dinyatakan benar.</p>
+</section>
+</main>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const $=id=>document.getElementById(id);
+let db=null,session=null,user=null,role=null,dusunRows=[];
+const show=(id,on=true)=>$(id).classList.toggle("hidden",!on);
+function msg(id,text,ok=false){const el=$(id);el.textContent=text;el.className="msg "+(ok?"ok":"err");}
+function clearMsg(id){$(id).className="msg hidden";$(id).textContent="";}
+function setBusy(id,on,label){const b=$(id);b.disabled=on;if(label)b.textContent=on?"Memproses...":label;}
+function rtList(v){return [...new Set(String(v||"").split(",").map(x=>x.trim()).filter(Boolean))];}
+function resetPanels(){["authCard","changePasswordCard","applyCard","adminCard","kadusCard"].forEach(id=>show(id,false));}
+async function connect(){
+ const url=$("sbUrl").value.trim(),key=$("sbKey").value.trim();
+ if(!url||!key)throw Error("URL dan publishable key wajib diisi.");
+ db=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ const {data,error}=await db.auth.getSession();if(error)throw error;
+ session=data.session;user=session?.user||null;show("connectCard",false);
+ if(user)await routeUser();else show("authCard",true);
+}
+async function routeUser(){
+ resetPanels();
+ const {data:sData}=await db.auth.getSession();session=sData.session;user=session?.user;
+ if(!user){show("authCard",true);return;}
+ if(user.user_metadata?.must_change_password===true){show("changePasswordCard",true);return;}
+ const {data:r,error}=await db.rpc("pbb_get_my_global_role");if(error)throw error;role=r;
+ if(role==="admin_utama"){show("adminCard",true);await loadAdmin();}
+ else if(role==="admin_dusun"){show("kadusCard",true);await loadKadus();}
+ else{show("applyCard",true);$("applyName").value=user.user_metadata?.full_name||"";}
+}
+async function loadAdmin(){
+ const [req,dus]=await Promise.all([
+  db.from("pbb_permohonan_kadus").select("*").order("dibuat_pada",{ascending:false}),
+  db.from("pbb_dusun").select("id,nama,owner_id").order("nama")
+ ]);
+ if(req.error)throw req.error;if(dus.error)throw dus.error;
+ dusunRows=dus.data||[];
+ $("requestsList").innerHTML="";
+ if(!req.data?.length)$("requestsList").textContent="Belum ada permohonan.";
+ for(const x of req.data||[]){
+  const box=document.createElement("div");box.className="item";
+  const title=document.createElement("b");title.textContent=x.nama_lengkap+" — "+x.nama_dusun;
+  const detail=document.createElement("p");detail.className="muted";detail.textContent="RT: "+(x.rt_diajukan||[]).join(", ")+" • Status: "+x.status;
+  box.append(title,detail);
+  if(x.status==="menunggu"){
+   const approve=document.createElement("button");approve.textContent="Setujui";
+   approve.onclick=()=>reviewRequest(x.id,true);
+   const reject=document.createElement("button");reject.textContent="Tolak";reject.className="danger";
+   reject.onclick=()=>reviewRequest(x.id,false);
+   box.append(approve,reject);
+  }
+  $("requestsList").append(box);
+ }
+ $("dusunList").innerHTML="";
+ const sel=$("createDusunSelect");sel.innerHTML='<option value="">Pilih dusun</option>';
+ for(const d of dusunRows){
+  const box=document.createElement("div");box.className="item";box.textContent=d.nama;
+  $("dusunList").append(box);
+  const opt=document.createElement("option");opt.value=d.id;opt.textContent=d.nama;sel.append(opt);
+ }
+}
+async function reviewRequest(id,approve){
+ let note="";if(!approve)note=prompt("Catatan penolakan (boleh kosong):")||"";
+ const {data,error}=await db.rpc("pbb_admin_review_kadus",{p_permohonan_id:id,p_setujui:approve,p_dusun_id:null,p_catatan:note});
+ if(error)throw error;alert(approve?"Permohonan disetujui.":"Permohonan ditolak.");await loadAdmin();
+}
+async function loadKadus(){
+ const {data,error}=await db.rpc("pbb_get_my_dusun_context");if(error)throw error;
+ const rows=data||[];
+ $("kadusContext").textContent=rows.map(x=>x.nama_dusun+" — wilayah RT aktif (diatur Admin Utama)").join("\n")||"Wilayah dusun belum ditemukan.";
+}
+$("connectBtn").onclick=async()=>{setBusy("connectBtn",true,"Hubungkan");try{await connect();}catch(e){msg("connectMsg",e.message);}finally{setBusy("connectBtn",false,"Hubungkan");}};
+$("loginBtn").onclick=async()=>{setBusy("loginBtn",true,"Login");clearMsg("authMsg");try{const {data,error}=await db.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error)throw error;session=data.session;user=data.user;await routeUser();}catch(e){msg("authMsg",e.message);}finally{setBusy("loginBtn",false,"Login");}};
+$("signupBtn").onclick=async()=>{setBusy("signupBtn",true,"Buat Akun Kepala Dusun");try{const nama=$("signupName").value.trim();const {data,error}=await db.auth.signUp({email:$("signupEmail").value.trim(),password:$("signupPassword").value,user_metadata:{full_name:nama}});if(error)throw error;if(data.session){session=data.session;user=data.user;await routeUser();msg("applyMsg","Akun berhasil dibuat. Lengkapi permohonan RT.",true);}else{msg("authMsg","Akun dibuat. Jika diminta konfirmasi email, buka email konfirmasi, lalu login kembali untuk mengirim permohonan.",true);}}catch(e){msg("authMsg",e.message);}finally{setBusy("signupBtn",false,"Buat Akun Kepala Dusun");}};
+$("savePasswordBtn").onclick=async()=>{setBusy("savePasswordBtn",true,"Simpan Kata Sandi Baru");try{const a=$("newPassword").value,b=$("newPassword2").value;if(a.length<8)throw Error("Kata sandi minimal 8 karakter.");if(a!==b)throw Error("Ulangan kata sandi tidak sama.");const {error}=await db.auth.updateUser({password:a,data:{must_change_password:false}});if(error)throw error;await routeUser();}catch(e){msg("passwordMsg",e.message);}finally{setBusy("savePasswordBtn",false,"Simpan Kata Sandi Baru");}};
+$("applyBtn").onclick=async()=>{setBusy("applyBtn",true,"Kirim Permohonan");try{const nama=$("applyName").value.trim(),dusun=$("applyDusun").value.trim(),rts=rtList($("applyRT").value);if(rts.length===0)throw Error("Isi minimal satu RT.");const {data,error}=await db.rpc("pbb_submit_kadus_application",{p_nama_lengkap:nama,p_nama_dusun:dusun,p_rt:rts});if(error)throw error;msg("applyMsg","Permohonan terkirim dan menunggu persetujuan Admin Utama.",true);}catch(e){msg("applyMsg",e.message);}finally{setBusy("applyBtn",false,"Kirim Permohonan");}};
+$("refreshAdminBtn").onclick=()=>loadAdmin().catch(e=>alert(e.message));
+$("createDusunBtn").onclick=async()=>{setBusy("createDusunBtn",true,"Buat Dusun");try{const nama=$("newDusunName").value.trim();const {error}=await db.rpc("pbb_create_dusun",{p_nama:nama});if(error)throw error;$("newDusunName").value="";msg("dusunMsg","Dusun berhasil dibuat. Pilih dusun tersebut saat membuat akun Kepala Dusun.",true);await loadAdmin();}catch(e){msg("dusunMsg",e.message);}finally{setBusy("createDusunBtn",false,"Buat Dusun");}};
+$("createAccountBtn").onclick=async()=>{setBusy("createAccountBtn",true,"Buat Akun Kepala Dusun");try{const rts=rtList($("createRT").value);if(!rts.length)throw Error("Masukkan minimal satu RT.");const {data:s}=await db.auth.getSession();const token=s.session?.access_token;if(!token)throw Error("Sesi login tidak ditemukan.");const res=await fetch("https://jikrxatgnqudfskswbae.supabase.co/functions/v1/create-kadus-account",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":$("sbKey").value.trim()},body:JSON.stringify({nama:$("createNama").value.trim(),email:$("createEmail").value.trim(),password:$("createPassword").value,dusun_id:$("createDusunSelect").value,rt:rts})});const out=await res.json();if(!res.ok)throw Error(out.error||"Gagal membuat akun.");msg("createAccountMsg","Akun Kepala Dusun berhasil dibuat untuk "+out.dusun+". Pengguna wajib mengganti kata sandi saat login pertama.",true);$("createNama").value=$("createEmail").value=$("createPassword").value=$("createRT").value="";}catch(e){msg("createAccountMsg",e.message);}finally{setBusy("createAccountBtn",false,"Buat Akun Kepala Dusun");}};
+async function logout(){await db.auth.signOut();session=null;user=null;role=null;resetPanels();show("authCard",true);}
+$("logoutAdminBtn").onclick=logout;$("logoutKadusBtn").onclick=logout;
+try{const savedUrl=localStorage.getItem("pbb6_url"),savedKey=localStorage.getItem("pbb6_key");if(savedUrl&&savedKey){$("sbUrl").value=savedUrl;$("sbKey").value=savedKey;await connect();}}catch(e){show("connectCard",true);msg("connectMsg",e.message);}
+</script>
+</body>
+</html>
