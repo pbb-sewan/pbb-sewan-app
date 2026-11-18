@@ -16,6 +16,9 @@
 - Admin Utama dapat membuat dusun, membuat akun Kepala Dusun, menyetujui/menolak permohonan, mengaktifkan/nonaktifkan akun, dan mengatur penugasan RT.
 - Master wilayah sudah berisi 16 dusun dan 54 RT desa (RT 01–54 dengan pembagian sesuai daftar resmi, termasuk RT 51 dan 54 pada Jurusawah serta RT 52–53 pada Ngemplak).
 - Saat membuat akun Kepala Dusun, pilihan RT hanya berasal dari master RT dusun yang dipilih. RT yang sudah ditugaskan tidak ditawarkan lagi.
+- Pendaftaran mandiri Kepala Dusun juga memakai pilihan dusun resmi dan centang RT resmi yang belum ditugaskan; isian bebas nama dusun/RT sudah dihilangkan.
+- RPC pendaftaran memvalidasi format RT `RT 00`, kecocokan RT dengan dusun, serta status penugasan sebelum menyimpan permohonan.
+- RPC pilihan pendaftaran hanya mengembalikan RT resmi yang belum ditugaskan kepada akun aktif.
 - Penugasan RT dibatasi agar satu nomor RT hanya dapat ditugaskan kepada satu akun Kepala Dusun. Foreign key database memastikan RT yang ditugaskan benar-benar milik dusun tersebut.
 - Data wajib pajak: tambah, edit seluruh kolom, hapus, pencarian nama/Nama sekarang/NOP/NOPD, filter status dan RT, serta pilihan data.
 - Pembayaran sederhana: Catat Lunas atau Batalkan Lunas. Tidak ada pilihan Tunai/Online atau Setor/Belum Setor.
@@ -36,11 +39,13 @@
 9. Uji laporan, filter RT/status, rekap per pemilik, cetak, CSV, JPG, bukti pembayaran, dan WhatsApp.
 10. Unduh backup JSON. Lakukan restore hanya dengan file uji dan pastikan data yang tidak ada di backup tidak terhapus.
 11. Di panel Admin Utama, pastikan daftar dusun menampilkan RT resmi sesuai pembagian wilayah.
-12. Buat akun Kepala Dusun uji. Pilih dusun, lalu centang hanya RT yang muncul dari master wilayah. Pastikan RT yang sudah ditugaskan tidak muncul lagi.
-13. Di bagian Atur Wilayah RT, pastikan hanya RT resmi dusun tersebut yang dapat dipilih. Coba pastikan satu RT tidak dapat ditugaskan ke akun lain.
-14. Login menggunakan akun Kepala Dusun uji. Pastikan hanya data RT yang ditugaskan yang terlihat dan backup/restore tidak tersedia.
-15. Uji dua akun Kepala Dusun dengan RT berbeda untuk memastikan keduanya tidak dapat saling melihat atau mengubah data.
-16. Uji keluar, login ulang, dan ganti kata sandi sementara.
+12. Uji pendaftaran mandiri: buat/login akun uji, pilih dusun dari daftar resmi, centang RT resmi yang belum ditugaskan, lalu kirim permohonan. Pastikan isian bebas dusun/RT tidak tersedia.
+13. Login Admin Utama, setujui permohonan uji dan pastikan dusun serta RT yang ditetapkan sesuai permohonan.
+14. Buat akun Kepala Dusun melalui Admin Utama. Pilih dusun, lalu centang hanya RT yang muncul dari master wilayah. Pastikan RT yang sudah ditugaskan tidak muncul lagi.
+15. Di bagian Atur Wilayah RT, pastikan hanya RT resmi dusun tersebut yang dapat dipilih. Pastikan satu RT tidak dapat ditugaskan ke akun lain.
+16. Login menggunakan akun Kepala Dusun uji. Pastikan hanya data RT yang ditugaskan yang terlihat dan backup/restore tidak tersedia.
+17. Uji dua akun Kepala Dusun dengan RT berbeda untuk memastikan keduanya tidak dapat saling melihat atau mengubah data.
+18. Uji keluar, login ulang, dan ganti kata sandi sementara.
 
 ## Status verifikasi yang sudah tercatat
 - Login Admin Utama pada preview berhasil.
@@ -49,7 +54,8 @@
 - Dry-run backup/restore sebelumnya berhasil diproses dalam transaksi yang di-rollback.
 - Pemeriksaan HTML sebelumnya tidak menemukan ID ganda atau referensi ID statis yang hilang.
 - Supabase Storage untuk bukti bersifat privat dan dibatasi tipe gambar serta ukuran file.
-- Master wilayah 16 dusun/54 RT sudah diverifikasi di Supabase. Penugasan akun Kepala Dusun dan isolasi antar-akun masih harus diuji melalui dua akun nyata.
+- Master wilayah 16 dusun/54 RT sudah diverifikasi di Supabase. RPC opsi pendaftaran berhasil mengembalikan 54 RT ketika belum ada penugasan. Fungsi pendaftaran dan persetujuan sudah memvalidasi dusun/RT; simulasi submit penuh memerlukan akun Auth nyata sehingga belum dinyatakan lulus.
+- Form pendaftaran mandiri sudah diganti ke pilihan dusun dan centang RT resmi pada branch pengembangan. Pembuatan akun melalui Edge Function tetap dilindungi foreign key dan unique index database; pembaruan validasi awal Edge Function belum diterapkan.
 - Foto, cetak/JPG di Android, serta restore browser nyata tetap harus diselesaikan.
 - Supabase Free tidak menyediakan perlindungan kata sandi bocor HaveIBeenPwned; fitur ini memerlukan paket Pro atau lebih tinggi. Ini bukan penghalang teknis untuk menjalankan aplikasi.
 
