@@ -116,8 +116,19 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <div id="wpList" class="muted">Pilih dusun terlebih dahulu.</div>
 <hr><h3>Laporan dan cetak</h3>
 <div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
-<button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button>
+<button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
+<hr><h3>Rekap posisi uang</h3>
+<button id="loadMoneyBtn" class="secondary">Muat Rekap Posisi Uang</button>
+<div id="moneySummary" class="item"></div><div id="moneyRows"></div>
+<hr><h3>Pencatatan setoran ke bank</h3>
+<p class="muted">Catat setoran yang benar-benar diserahkan ke bank. Pencatatan ini tidak otomatis mengubah status pembayaran wajib pajak.</p>
+<div class="row"><div><label>Tanggal setor</label><input id="depositDate" type="date"></div><div><label>Nama penyetor</label><input id="depositName" placeholder="Nama orang yang menyetor"></div></div>
+<label>Jumlah setoran (Rp)</label><input id="depositAmount" type="number" min="1" step="1">
+<label>Catatan setoran</label><input id="depositNote" placeholder="Opsional">
+<button id="addDepositBtn">Simpan Setoran</button><div id="depositMsg" class="msg hidden"></div>
+<h3>Riwayat setoran dusun</h3><button id="loadDepositsBtn" class="secondary">Muat Riwayat Setoran</button>
+<div id="depositRows"></div><div id="depositRekap"></div>
 <hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
 <hr><h3>Catatan dusun</h3>
 <label>Judul catatan</label><input id="noteTitle"><label>Isi catatan</label><textarea id="noteBody"></textarea>
@@ -370,6 +381,62 @@ $("refreshWpBtn").onclick=()=>loadWorkData().catch(e=>alert(e.message));
 
 let reportRows=[];
 const dateFmt=v=>v?new Date(v).toLocaleDateString("id-ID"):"-";
+
+function csvDownload(filename,rows){
+ const csv=rows.map(row=>row.map(v=>{const s=String(v??"");return '"'+s.replace(/"/g,'""')+'"';}).join(",")).join("\r\n");
+ const blob=new Blob(["\\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportReportCsv(){
+ if(!reportRows.length)throw Error("Tampilkan laporan terlebih dahulu.");
+ const rows=[["NOP","NOPD","Nama Wajib Pajak","Pemilik Sekarang","RT","Status","Target Pajak","Jumlah Bayar","Tanggal Bayar","Metode","Status Setoran","Letak"],
+ ...reportRows.map(x=>[x.nop,x.nopd,x.nama,x.pemilik_sekarang,x.rt,x.status_pembayaran,x.target_pajak,x.jumlah_bayar,x.tanggal_bayar,x.metode_bayar,x.status_setoran,x.letak])];
+ csvDownload("laporan-pbb-"+$("workYear").value+".csv",rows);
+}
+async function loadMoneyPosition(){
+ if(!activeDusunId)throw Error("Pilih dusun dahulu.");
+ const {data,error}=await db.from("pbb_rekap_posisi_uang").select("*").eq("dusun_id",activeDusunId).eq("tahun",Number($("workYear").value));
+ if(error)throw error;
+ const rows=data||[],total=rows.reduce((a,x)=>a+Number(x.total_nominal||0),0);
+ $("moneySummary").textContent="Total seluruh posisi uang: "+rupiah(total);
+ const host=$("moneyRows");host.innerHTML="";
+ if(!rows.length){host.textContent="Belum ada data posisi uang.";return;}
+ rows.forEach(x=>{const el=document.createElement("div");el.className="item";el.textContent=x.posisi_uang+" • "+x.jumlah_wajib_pajak+" transaksi • "+rupiah(x.total_nominal);host.append(el);});
+}
+async function loadDeposits(){
+ if(!activeDusunId)throw Error("Pilih dusun dahulu.");
+ const year=Number($("workYear").value);
+ const [items,recap]=await Promise.all([
+  db.from("pbb_setoran_petugas").select("id,tanggal_setor,nama_petugas,jumlah_setor,catatan,created_at").eq("dusun_id",activeDusunId).eq("tahun",year).order("tanggal_setor",{ascending:false}),
+  db.from("pbb_rekap_setoran_petugas").select("*").eq("dusun_id",activeDusunId).eq("tahun",year).order("nama_petugas")
+ ]);
+ if(items.error)throw items.error;if(recap.error)throw recap.error;
+ const host=$("depositRows");host.innerHTML="";
+ (items.data||[]).forEach(x=>{
+  const el=document.createElement("div");el.className="item";
+  const info=document.createElement("div");info.textContent=dateFmt(x.tanggal_setor)+" • "+x.nama_petugas+" • "+rupiah(x.jumlah_setor)+(x.catatan?" • "+x.catatan:"");
+  const del=document.createElement("button");del.className="danger";del.textContent="Hapus";del.onclick=async()=>{if(!confirm("Hapus catatan setoran ini?"))return;const {error}=await db.from("pbb_setoran_petugas").delete().eq("id",x.id);if(error)alert(error.message);else loadDeposits().catch(e=>alert(e.message));};
+  el.append(info,del);host.append(el);
+ });
+ const rekap=recap.data||[],total=rekap.reduce((a,x)=>a+Number(x.total_setoran||0),0);
+ $("depositRekap").innerHTML="";
+ const summary=document.createElement("div");summary.className="item";summary.textContent="Total tercatat disetor: "+rupiah(total);$("depositRekap").append(summary);
+ rekap.forEach(x=>{const el=document.createElement("div");el.className="item";el.textContent=x.nama_petugas+" • "+x.jumlah_transaksi_setor+" kali setor • "+rupiah(x.total_setoran)+" • "+dateFmt(x.setor_pertama)+" s.d. "+dateFmt(x.setor_terakhir);$("depositRekap").append(el);});
+ const exportBtn=document.createElement("button");exportBtn.className="secondary";exportBtn.textContent="Ekspor Rekap Setoran CSV";exportBtn.onclick=()=>csvDownload("rekap-setoran-"+year+".csv",[["Nama Penyetor","Jumlah Transaksi","Total Setoran","Setor Pertama","Setor Terakhir"],...rekap.map(x=>[x.nama_petugas,x.jumlah_transaksi_setor,x.total_setoran,x.setor_pertama,x.setor_terakhir])]);$("depositRekap").append(exportBtn);
+}
+async function addDeposit(){
+ const date=$("depositDate").value,name=$("depositName").value.trim(),amount=Number($("depositAmount").value);
+ if(!date||!name||!Number.isFinite(amount)||amount<=0)throw Error("Tanggal, nama penyetor, dan jumlah setoran wajib diisi dengan benar.");
+ const {error}=await db.from("pbb_setoran_petugas").insert({dusun_id:activeDusunId,tahun:Number($("workYear").value),tanggal_setor:date,nama_petugas:name,jumlah_setor:amount,catatan:$("depositNote").value.trim()||null});
+ if(error)throw error;
+ $("depositName").value="";$("depositAmount").value="";$("depositNote").value="";
+ await loadDeposits();msg("depositMsg","Setoran berhasil dicatat.",true);
+}
+$("loadMoneyBtn").onclick=()=>loadMoneyPosition().catch(e=>alert(e.message));
+$("addDepositBtn").onclick=()=>addDeposit().catch(e=>msg("depositMsg",e.message));
+$("loadDepositsBtn").onclick=()=>loadDeposits().catch(e=>alert(e.message));
+$("exportReportBtn").onclick=()=>{try{exportReportCsv();}catch(e){alert(e.message);}};
+
 async function loadReport(){
  if(!activeDusunId)throw Error("Pilih dusun dahulu.");
  let q=db.from("pbb_laporan_tahunan").select("*").eq("dusun_id",activeDusunId).eq("tahun",Number($("workYear").value)).order("nama");
