@@ -470,11 +470,11 @@ function printOwnerReport(){
 $("printOwnerReportBtn").onclick=()=>{try{printOwnerReport();}catch(e){alert(e.message);}};
 
 function csvDownload(filename,rows){
- const csv=rows.map(row=>row.map(v=>{const value=String(v??"");return '"'+value.split('"').join('""')+'"';}).join(",")).join("\r\n");
+ const csv=rows.map(row=>row.map(v=>{let value=String(v??"");if(typeof v==="string"&&/^[\\s]*[=+@-]/.test(value))value="'"+value;return '"'+value.split('"').join('""')+'"';}).join(",")).join("\r\n");
  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-async function exportRowsJpg(rows,title,filename){
+async async function exportRowsJpg(rows,title,filename){
  if(!rows.length)throw Error("Tidak ada data untuk diekspor.");
  if(rows.length>80)throw Error("Ekspor JPG maksimal 80 data sekaligus. Gunakan filter atau pilih lebih sedikit data.");
  if(typeof window.html2canvas!=="function")throw Error("Komponen ekspor gambar belum termuat. Periksa koneksi internet lalu muat ulang.");
