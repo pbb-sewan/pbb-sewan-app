@@ -514,8 +514,15 @@ async function downloadBackup(){
 async function restoreBackup(){
  const file=$("restoreFile").files[0];if(!file)throw Error("Pilih file backup terlebih dahulu.");
  if(role!=="admin_utama")throw Error("Hanya Admin Utama yang boleh memulihkan backup.");
- if(!confirm("PERINGATAN: Data yang cocok akan ditambahkan atau diperbarui. Data lain tidak dihapus. Pastikan dusun dan file benar. Lanjutkan?"))return;
- const raw=JSON.parse(await file.text());const {data,error}=await db.rpc("pbb_restore_dusun_data",{p_dusun_id:activeDusunId,p_backup:raw});if(error)throw error;
+ if(!activeDusunId)throw Error("Pilih dan buka dusun tujuan terlebih dahulu.");
+ const raw=JSON.parse(await file.text());
+ const backupDusunId=raw?.dusun?.id;
+ const backupDusunName=raw?.dusun?.nama||"tidak diketahui";
+ const targetDusunName=$("workDusunLabel").textContent;
+ if(!backupDusunId)throw Error("Restore ditolak: file backup tidak memiliki identitas dusun yang valid.");
+ if(backupDusunId!==activeDusunId)throw Error("Restore ditolak: file ini milik "+backupDusunName+", sedangkan dusun yang sedang dibuka adalah "+targetDusunName+". Pilih file backup yang sesuai.");
+ if(!confirm("PERINGATAN: File backup terdeteksi milik "+backupDusunName+" dan akan dipulihkan ke dusun "+targetDusunName+". Data yang cocok akan ditambahkan atau diperbarui. Data lain tidak dihapus. Lanjutkan?"))return;
+ const {data,error}=await db.rpc("pbb_restore_dusun_data",{p_dusun_id:activeDusunId,p_backup:raw});if(error)throw error;
  await loadWorkData();await loadReport();msg("backupMsg","Penggabungan backup selesai: "+JSON.stringify(data)+". Data yang tidak ada di backup tidak dihapus.",true);
 }
 $("loadReportBtn").onclick=()=>loadReport().catch(e=>alert(e.message));
