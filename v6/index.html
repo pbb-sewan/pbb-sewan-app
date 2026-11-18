@@ -258,7 +258,9 @@ async function reviewRequest(id,approve,dusunId=null){
 async function loadKadus(){
  const {data,error}=await db.rpc("pbb_get_my_dusun_context");if(error)throw error;
  const rows=data||[];
- $("kadusContext").textContent=rows.map(x=>x.nama_dusun+" — wilayah RT aktif (diatur Admin Utama)").join("\n")||"Wilayah dusun belum ditemukan.";
+ const {data:rtRows,error:rtError}=await db.from("pbb_dusun_rt").select("dusun_id,rt").eq("user_id",user.id).eq("is_active",true).order("rt");
+ if(rtError)throw rtError;
+ $("kadusContext").textContent=rows.map(x=>{const list=(rtRows||[]).filter(r=>r.dusun_id===x.dusun_id).map(r=>r.rt);return x.nama_dusun+" — "+(list.length?"Wilayah RT: "+list.join(", "):"Belum ada RT ditetapkan. Hubungi Admin Utama.");}).join("\n")||"Wilayah dusun belum ditemukan.";
 }
 $("connectBtn").onclick=async()=>{setBusy("connectBtn",true,"Hubungkan");try{await connect();}catch(e){msg("connectMsg",e.message);}finally{setBusy("connectBtn",false,"Hubungkan");}};
 $("loginBtn").onclick=async()=>{setBusy("loginBtn",true,"Login");clearMsg("authMsg");try{const {data,error}=await db.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error)throw error;session=data.session;user=data.user;await routeUser();}catch(e){msg("authMsg",e.message);}finally{setBusy("loginBtn",false,"Login");}};
