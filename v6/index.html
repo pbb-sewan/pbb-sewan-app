@@ -116,13 +116,13 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <button id="refreshWpBtn" class="secondary">Muat Ulang Data</button>
  <button id="wpSelectAllBtn" class="secondary">Pilih Semua Hasil</button>
  <button id="wpShareBtn" class="secondary">Bagikan Pilihan via WhatsApp</button>
- <button id="wpPrintSelectedBtn" class="secondary">Cetak Daftar Pilihan</button>
+ <button id="wpPrintSelectedBtn" class="secondary">Cetak Daftar Pilihan</button> <button id="wpPrintReceiptsBtn" class="secondary">Cetak Bukti Pembayaran Terpilih</button> <button id="wpExportSelectedJpgBtn" class="secondary">Ekspor Pilihan JPG</button>
  <div id="wpSelectionInfo" class="muted">0 data dipilih.</div>
  <div id="wpList" class="muted">Pilih dusun terlebih dahulu.</div>
  <div class="row"><button id="wpPagePrev" class="secondary">Sebelumnya</button><span id="wpPageInfo">Halaman 1</span><button id="wpPageNext" class="secondary">Berikutnya</button></div>
 <hr><h3>Laporan dan cetak</h3>
-<div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
-<button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button>
+<div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div><div><label>Filter metode</label><select id="reportMethod"><option value="all">Semua metode</option><option value="Khanief">Khanief</option><option value="Online">Online</option></select></div></div>
+<button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button> <button id="exportReportJpgBtn" class="secondary">Ekspor JPG</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
 <hr><h3>Rekap posisi uang</h3>
 <button id="loadMoneyBtn" class="secondary">Muat Rekap Posisi Uang</button>
@@ -150,6 +150,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 
 </section>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const $=id=>document.getElementById(id);
@@ -418,7 +419,7 @@ async function deleteWp(w){
 }
 $("openDusunBtn").onclick=()=>openSelectedDusun().catch(e=>alert(e.message));
 $("workYear").onchange=()=>loadWorkData().catch(e=>alert(e.message));
-$("wpSearch").oninput=()=>{currentWpPage=1;renderWp();};$("wpFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpMethodFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpPageSize").onchange=()=>{currentWpPage=1;renderWp();};$("wpPagePrev").onclick=()=>{currentWpPage--;renderWp();};$("wpPageNext").onclick=()=>{currentWpPage++;renderWp();};$("wpSelectAllBtn").onclick=()=>{if(filteredWpRows.every(w=>selectedWpIds.has(w.id)))filteredWpRows.forEach(w=>selectedWpIds.delete(w.id));else filteredWpRows.forEach(w=>selectedWpIds.add(w.id));renderWp();};$("wpShareBtn").onclick=()=>{try{shareSelectedWp();}catch(e){alert(e.message);}};$("wpPrintSelectedBtn").onclick=()=>{try{printSelectedWp();}catch(e){alert(e.message);}};
+$("wpSearch").oninput=()=>{currentWpPage=1;renderWp();};$("wpFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpMethodFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpPageSize").onchange=()=>{currentWpPage=1;renderWp();};$("wpPagePrev").onclick=()=>{currentWpPage--;renderWp();};$("wpPageNext").onclick=()=>{currentWpPage++;renderWp();};$("wpSelectAllBtn").onclick=()=>{if(filteredWpRows.every(w=>selectedWpIds.has(w.id)))filteredWpRows.forEach(w=>selectedWpIds.delete(w.id));else filteredWpRows.forEach(w=>selectedWpIds.add(w.id));renderWp();};$("wpShareBtn").onclick=()=>{try{shareSelectedWp();}catch(e){alert(e.message);}};$("wpPrintSelectedBtn").onclick=()=>{try{printSelectedWp();}catch(e){alert(e.message);}};$("wpPrintReceiptsBtn").onclick=()=>{try{printSelectedReceipts();}catch(e){alert(e.message);}};$("wpExportSelectedJpgBtn").onclick=()=>exportSelectedJpg().catch(e=>alert(e.message));$("exportReportJpgBtn").onclick=()=>exportReportJpg().catch(e=>alert(e.message));
 $("addWpBtn").onclick=()=>addWp().catch(e=>msg("wpMsg",e.message));
 $("refreshWpBtn").onclick=()=>loadWorkData().catch(e=>alert(e.message));
 
@@ -445,6 +446,40 @@ function csvDownload(filename,rows){
  const csv=rows.map(row=>row.map(v=>{const value=String(v??"");return '"'+value.split('"').join('""')+'"';}).join(",")).join("\r\n");
  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function exportRowsJpg(rows,title,filename){
+ if(!rows.length)throw Error("Tidak ada data untuk diekspor.");
+ if(typeof window.html2canvas!=="function")throw Error("Komponen ekspor gambar belum termuat. Periksa koneksi internet lalu muat ulang.");
+ const wrap=document.createElement("div");
+ wrap.style.cssText="position:fixed;left:-12000px;top:0;width:1100px;padding:36px;background:#fff;color:#111;font:18px Arial;z-index:-1;";
+ const heading=document.createElement("h1");heading.textContent=title;heading.style.textAlign="center";wrap.append(heading);
+ const meta=document.createElement("p");meta.textContent=$("workDusunLabel").textContent+" • Tahun "+$("workYear").value;wrap.append(meta);
+ const summary=document.createElement("p");summary.textContent=$("reportSummary").textContent;wrap.append(summary);
+ const table=document.createElement("table");table.style.cssText="width:100%;border-collapse:collapse;font-size:15px;";
+ const headers=["No","NOP","Nama","RT","Status","Target","Bayar","Metode","Status Setoran"];
+ const thead=document.createElement("thead"),trh=document.createElement("tr");
+ headers.forEach(v=>{const th=document.createElement("th");th.textContent=v;th.style.cssText="border:1px solid #555;padding:8px;background:#eee";trh.append(th);});thead.append(trh);table.append(thead);
+ const tbody=document.createElement("tbody");
+ rows.forEach((x,i)=>{const tr=document.createElement("tr");[i+1,x.nop,x.nama,x.rt||"-",x.status_pembayaran,rupiah(x.target_pajak),rupiah(x.jumlah_bayar),x.metode_bayar||"-",x.status_setoran||"-"].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"-");td.style.cssText="border:1px solid #777;padding:7px";tr.append(td);});tbody.append(tr);});
+ table.append(tbody);wrap.append(table);document.body.append(wrap);
+ try{
+  const canvas=await window.html2canvas(wrap,{scale:2,backgroundColor:"#ffffff",useCORS:false,logging:false});
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.92));
+  if(!blob)throw Error("Gagal membuat gambar JPG.");
+  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ }finally{wrap.remove();}
+}
+function exportReportJpg(){return exportRowsJpg(reportRows,"LAPORAN PBB SEWAN","laporan-pbb-"+$("workYear").value+".jpg");}
+function exportSelectedJpg(){
+ const rows=wpRows.filter(w=>selectedWpIds.has(w.id)).map(w=>{const p=paymentRows.find(x=>x.wajib_pajak_id===w.id)||{};return {nop:w.nop,nama:w.nama,rt:w.rt,status_pembayaran:p.status||"Belum Lunas",target_pajak:w.nominal_pajak,jumlah_bayar:p.jumlah_bayar,metode_bayar:p.metode_bayar,status_setoran:p.status_setoran};});
+ return exportRowsJpg(rows,"DAFTAR PBB TERPILIH","pbb-terpilih-"+$("workYear").value+".jpg");
+}
+function printSelectedReceipts(){
+ const rows=wpRows.filter(w=>selectedWpIds.has(w.id)).map(w=>({w,p:paymentRows.find(x=>x.wajib_pajak_id===w.id)})).filter(x=>x.p?.status==="Lunas");
+ if(!rows.length)throw Error("Tidak ada wajib pajak lunas yang dipilih.");
+ const cards=rows.map(({w,p})=>"<section class='receipt'><h2>BUKTI PEMBAYARAN PBB</h2><p>Dusun: "+esc($("workDusunLabel").textContent)+"</p><p>NOP: "+esc(w.nop)+"</p><p>Nama: "+esc(w.nama)+"</p><p>RT: "+esc(w.rt||"-")+"</p><hr><p>Tahun: "+esc(p.tahun)+"</p><p>Tanggal bayar: "+esc(dateFmt(p.tanggal_bayar))+"</p><p>Jumlah dibayar: <b>"+rupiah(p.jumlah_bayar)+"</b></p><p>Metode: "+esc(p.metode_bayar||"-")+"</p><p>Status setoran: "+esc(p.status_setoran||"-")+"</p><p>Terima Kasih</p><p>Penarik Pajak: Muhammad Khanief</p></section>").join("");
+ const win=window.open("","_blank");if(!win)throw Error("Izinkan pop-up untuk mencetak.");
+ win.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Bukti Pembayaran PBB</title><style>body{font:14px Arial;padding:18px}.receipt{border:1px solid #555;padding:20px;margin:0 auto 20px;max-width:700px;break-after:page}.receipt:last-child{break-after:auto}h2{text-align:center}</style></head><body>"+cards+"<script>window.onload=()=>window.print()<\\/script></body></html>");win.document.close();
 }
 function exportReportCsv(){
  if(!reportRows.length)throw Error("Tampilkan laporan terlebih dahulu.");
@@ -501,14 +536,17 @@ async function loadReport(){
  let q=db.from("pbb_laporan_tahunan").select("*").eq("dusun_id",activeDusunId).eq("tahun",Number($("workYear").value)).order("nama");
  const rt=$("reportRT").value.trim();if(rt)q=q.eq("rt",rt);
  const {data,error}=await q;if(error)throw error;
- const f=$("reportFilter").value;
- reportRows=(data||[]).filter(x=>f==="all"||x.status_pembayaran===f);
+ const f=$("reportFilter").value,method=$("reportMethod").value;
+ reportRows=(data||[]).filter(x=>(f==="all"||x.status_pembayaran===f)&&(method==="all"||x.metode_bayar===method));
  const total=reportRows.reduce((a,x)=>a+Number(x.target_pajak||0),0);
  const paid=reportRows.reduce((a,x)=>a+Number(x.nominal_lunas||0),0);
- $("reportSummary").textContent="Data: "+reportRows.length+" wajib pajak • Target: "+rupiah(total)+" • Lunas: "+rupiah(paid)+" • Belum lunas: "+rupiah(Math.max(0,total-paid));
+ const held=reportRows.filter(x=>x.metode_bayar==="Khanief"&&x.status_setoran==="Belum Setor").reduce((a,x)=>a+Number(x.jumlah_bayar||0),0);
+ const bank=reportRows.filter(x=>x.metode_bayar==="Online"||(x.metode_bayar==="Khanief"&&x.status_setoran==="Sudah Setor")).reduce((a,x)=>a+Number(x.jumlah_bayar||0),0);
+ $("reportSummary").textContent="Data: "+reportRows.length+" wajib pajak • Target: "+rupiah(total)+" • Lunas: "+rupiah(paid)+" • Belum lunas: "+rupiah(Math.max(0,total-paid))+" • Dipegang: "+rupiah(held)+" • Masuk bank: "+rupiah(bank);
  const host=$("reportList");host.innerHTML="";
  reportRows.forEach((x,i)=>{const el=document.createElement("div");el.className="item";el.textContent=(i+1)+". "+x.nama+" | NOP "+x.nop+" | RT "+(x.rt||"-")+" | "+x.status_pembayaran+" | Target "+rupiah(x.target_pajak)+" | Bayar "+rupiah(x.jumlah_bayar);host.append(el);});
 }
+
 async function loadHistory(){
  if(!activeDusunId)throw Error("Pilih dusun dahulu.");
  const [a,b]=await Promise.all([
@@ -545,7 +583,7 @@ async function restoreBackup(){
  await loadWorkData();await loadReport();await loadNotes();msg("backupMsg","Penggabungan backup selesai: "+JSON.stringify(data)+". Data yang tidak ada di backup tidak dihapus.",true);
 }
 $("loadReportBtn").onclick=()=>loadReport().catch(e=>alert(e.message));
-$("reportFilter").onchange=()=>loadReport().catch(e=>alert(e.message));
+$("reportFilter").onchange=()=>loadReport().catch(e=>alert(e.message));$("reportMethod").onchange=()=>loadReport().catch(e=>alert(e.message));$("reportRT").onchange=()=>loadReport().catch(e=>alert(e.message));
 $("printReportBtn").onclick=()=>{
  if(!reportRows.length){alert("Tampilkan laporan dahulu.");return;}
  const w=window.open("","_blank");if(!w){alert("Izinkan pop-up untuk mencetak laporan.");return;}
