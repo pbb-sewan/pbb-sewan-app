@@ -113,6 +113,11 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 <label>Dusun</label><select id="createDusunSelect"><option value="">Pilih dusun</option></select>
 <label>Wilayah RT (hanya RT resmi dusun ini)</label><div id="createRTOptions" class="item muted">Pilih dusun terlebih dahulu.</div>
 <button id="createAccountBtn">Buat Akun Kepala Dusun</button><div id="createAccountMsg" class="msg hidden"></div>
+<hr><h3>Reset kata sandi akun Sewan</h3>
+<p class="muted">Khusus Admin Utama. Akun sasaran: alexandreandre558@gmail.com. Kata sandi sementara akan memaksa pengguna mengganti sandi setelah login.</p>
+<label>Kata sandi sementara baru (minimal 8 karakter)</label><input id="sewanResetPassword" type="password" autocomplete="new-password">
+<label>Ulangi kata sandi sementara</label><input id="sewanResetPassword2" type="password" autocomplete="new-password">
+<button id="resetSewanPasswordBtn" class="warning">Atur Ulang Password Sewan</button><div id="resetSewanPasswordMsg" class="msg hidden"></div>
 <hr><h3>Atur wilayah RT Kepala Dusun</h3>
 <label>Dusun</label><select id="rtManageDusun"><option value="">Pilih dusun</option></select>
 <label>Akun Kepala Dusun</label><select id="rtManageMember"><option value="">Pilih akun</option></select>
@@ -299,6 +304,7 @@ async function addAdminRT(){
  const {error}=await db.from("pbb_dusun_rt").insert({dusun_id:dusunId,user_id:userId,rt,is_active:true});if(error)throw error;
  $("rtManageValue").value="";await loadManageRTOptions();await loadAdminRTList();msg("rtManageMsg","Wilayah RT berhasil ditambahkan.",true);
 }
+$("resetSewanPasswordBtn").onclick=async()=>{setBusy("resetSewanPasswordBtn",true,"Atur Ulang Password Sewan");clearMsg("resetSewanPasswordMsg");try{const a=$("sewanResetPassword").value,b=$("sewanResetPassword2").value;if(a.length<8)throw Error("Kata sandi minimal 8 karakter.");if(a!==b)throw Error("Konfirmasi kata sandi tidak sama.");if(!confirm("Atur ulang kata sandi akun alexandreandre558@gmail.com? Pengguna wajib mengganti sandi setelah login."))return;const {data:s}=await db.auth.getSession();const token=s.session?.access_token;if(!token)throw Error("Sesi Admin Utama tidak ditemukan.");const res=await fetch("https://jikrxatgnqudfskswbae.supabase.co/functions/v1/admin-reset-sewan-password",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":$("sbKey").value.trim()},body:JSON.stringify({password:a})});const out=await res.json();if(!res.ok)throw Error(out.error||"Gagal mengatur ulang kata sandi.");$("sewanResetPassword").value=$("sewanResetPassword2").value="";msg("resetSewanPasswordMsg","Password sementara berhasil diatur. Silakan login menggunakan email akun Sewan dan password sementara ini, lalu buat password baru.",true);}catch(e){msg("resetSewanPasswordMsg",e.message);}finally{setBusy("resetSewanPasswordBtn",false,"Atur Ulang Password Sewan");}};
 $("rtManageDusun").onchange=()=>renderAdminRTMembers().catch(e=>msg("rtManageMsg",e.message));
 $("rtManageMember").onchange=()=>loadAdminRTList().catch(e=>msg("rtManageMsg",e.message));
 $("rtManageAddBtn").onclick=()=>addAdminRT().catch(e=>msg("rtManageMsg",e.message));
