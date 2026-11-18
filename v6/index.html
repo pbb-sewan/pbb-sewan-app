@@ -83,8 +83,8 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 </section>
 
 <section id="changePasswordCard" class="card hidden">
-<h2>Ganti Kata Sandi Sementara</h2>
-<p class="muted">Demi keamanan, Kepala Dusun yang dibuat Admin Utama wajib mengganti kata sandi sementara sebelum menggunakan aplikasi.</p>
+<h2>Atur Kata Sandi Baru</h2>
+<p class="muted">Masukkan kata sandi baru minimal 8 karakter, lalu ulangi untuk konfirmasi.</p>
 <label>Kata sandi baru (minimal 8 karakter)</label><input id="newPassword" type="password" autocomplete="new-password">
 <label>Ulangi kata sandi baru</label><input id="newPassword2" type="password" autocomplete="new-password">
 <button id="savePasswordBtn">Simpan Kata Sandi Baru</button><div id="passwordMsg" class="msg hidden"></div>
@@ -211,7 +211,7 @@ function activateWorkTab(id){
 }
 document.querySelectorAll("[data-work-tab]").forEach(button=>button.addEventListener("click",()=>activateWorkTab(button.dataset.workTab)));
 
-let db=null,session=null,user=null,role=null,dusunRows=[];
+let db=null,session=null,user=null,role=null,dusunRows=[],passwordRecoveryMode=false;
 const show=(id,on=true)=>$(id).classList.toggle("hidden",!on);
 function msg(id,text,ok=false){const el=$(id);el.textContent=text;el.className="msg "+(ok?"ok":"err");}
 function clearMsg(id){$(id).className="msg hidden";$(id).textContent="";}
@@ -229,15 +229,25 @@ async function connect(){
  if(!url||!key)throw Error("URL dan publishable key wajib diisi.");
  localStorage.setItem("pbb6_url",url);localStorage.setItem("pbb6_key",key);
  db=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ db.auth.onAuthStateChange((event,nextSession)=>{
+  if(event==="PASSWORD_RECOVERY"){
+   passwordRecoveryMode=true;session=nextSession;user=nextSession?.user||null;
+   resetPanels();show("changePasswordCard",true);
+  }
+ });
  const {data,error}=await db.auth.getSession();if(error)throw error;
- session=data.session;user=session?.user||null;show("connectCard",false);
+ session=data.session;user=session?.user||null;
+ const hashParams=new URLSearchParams(window.location.hash.slice(1));
+ const queryParams=new URLSearchParams(window.location.search);
+ if(session&&(hashParams.get("type")==="recovery"||queryParams.get("type")==="recovery"))passwordRecoveryMode=true;
+ show("connectCard",false);
  if(user)await routeUser();else show("authCard",true);
 }
 async function routeUser(){
  resetPanels();
  const {data:sData}=await db.auth.getSession();session=sData.session;user=session?.user;
  if(!user){show("authCard",true);return;}
- if(user.user_metadata?.must_change_password===true){show("changePasswordCard",true);return;}
+ if(passwordRecoveryMode||user.user_metadata?.must_change_password===true){show("changePasswordCard",true);return;}
  const {data:r,error}=await db.rpc("pbb_get_my_global_role");if(error)throw error;role=r;
  if(role==="admin_utama"){show("adminCard",true);await loadAdmin();}
  else if(role==="admin_dusun"){show("kadusCard",true);await loadKadus();}
@@ -336,7 +346,7 @@ async function loadKadus(){
 $("connectBtn").onclick=async()=>{setBusy("connectBtn",true,"Hubungkan");try{await connect();}catch(e){msg("connectMsg",e.message);}finally{setBusy("connectBtn",false,"Hubungkan");}};
 $("loginBtn").onclick=async()=>{setBusy("loginBtn",true,"Login");clearMsg("authMsg");try{const {data,error}=await db.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error)throw error;session=data.session;user=data.user;await routeUser();}catch(e){msg("authMsg",e.message);}finally{setBusy("loginBtn",false,"Login");}};
 $("signupBtn").onclick=async()=>{setBusy("signupBtn",true,"Buat Akun Kepala Dusun");try{const nama=$("signupName").value.trim();const {data,error}=await db.auth.signUp({email:$("signupEmail").value.trim(),password:$("signupPassword").value,user_metadata:{full_name:nama}});if(error)throw error;if(data.session){session=data.session;user=data.user;await routeUser();msg("applyMsg","Akun berhasil dibuat. Lengkapi permohonan RT.",true);}else{msg("authMsg","Akun dibuat. Jika diminta konfirmasi email, buka email konfirmasi, lalu login kembali untuk mengirim permohonan.",true);}}catch(e){msg("authMsg",e.message);}finally{setBusy("signupBtn",false,"Buat Akun Kepala Dusun");}};
-$("savePasswordBtn").onclick=async()=>{setBusy("savePasswordBtn",true,"Simpan Kata Sandi Baru");try{const a=$("newPassword").value,b=$("newPassword2").value;if(a.length<8)throw Error("Kata sandi minimal 8 karakter.");if(a!==b)throw Error("Ulangan kata sandi tidak sama.");const {error}=await db.auth.updateUser({password:a,data:{must_change_password:false}});if(error)throw error;await routeUser();}catch(e){msg("passwordMsg",e.message);}finally{setBusy("savePasswordBtn",false,"Simpan Kata Sandi Baru");}};
+$("savePasswordBtn").onclick=async()=>{setBusy("savePasswordBtn",true,"Simpan Kata Sandi Baru");try{const a=$("newPassword").value,b=$("newPassword2").value;if(a.length<8)throw Error("Kata sandi minimal 8 karakter.");if(a!==b)throw Error("Ulangan kata sandi tidak sama.");const {error}=await db.auth.updateUser({password:a,data:{must_change_password:false}});if(error)throw error;passwordRecoveryMode=false;$("newPassword").value="";$("newPassword2").value="";await routeUser();}catch(e){msg("passwordMsg",e.message);}finally{setBusy("savePasswordBtn",false,"Simpan Kata Sandi Baru");}};
 $("applyDusunSelect").onchange=()=>loadApplyRTOptions().catch(e=>msg("applyMsg",e.message));
 $("applyBtn").onclick=async()=>{setBusy("applyBtn",true,"Kirim Permohonan");try{const nama=$("applyName").value.trim(),dusunId=$("applyDusunSelect").value,dusun=applyOptionRows.find(x=>x.dusun_id===dusunId)?.nama_dusun,rts=[...document.querySelectorAll(".apply-rt-check:checked")].map(x=>x.value);if(!dusunId||!dusun)throw Error("Pilih dusun resmi.");if(!rts.length)throw Error("Pilih minimal satu RT resmi.");const {data,error}=await db.rpc("pbb_submit_kadus_application",{p_nama_lengkap:nama,p_nama_dusun:dusun,p_rt:rts});if(error)throw error;msg("applyMsg","Permohonan terkirim dan menunggu persetujuan Admin Utama.",true);}catch(e){msg("applyMsg",e.message);}finally{setBusy("applyBtn",false,"Kirim Permohonan");}};
 $("refreshAdminBtn").onclick=()=>loadAdmin().catch(e=>alert(e.message));
