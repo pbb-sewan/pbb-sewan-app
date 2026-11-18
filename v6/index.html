@@ -112,7 +112,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <button id="addWpBtn">Simpan Wajib Pajak</button><div id="wpMsg" class="msg hidden"></div>
  <hr><h3>Daftar wajib pajak</h3>
  <div class="row"><div><label>Cari nama / NOP</label><input id="wpSearch" placeholder="Ketik nama atau NOP"></div><div><label>Filter pembayaran</label><select id="wpFilter"><option value="all">Semua</option><option value="Belum Lunas">Belum lunas</option><option value="Lunas">Lunas</option></select></div></div>
- <div class="row"><div><label>Filter RT</label><input id="wpRTFilter" placeholder="Semua RT"></div><div><label>Filter metode bayar</label><select id="wpMethodFilter"><option value="all">Semua metode</option><option value="Khanief">Tunai</option><option value="Online">Online</option></select></div><div><label>Jumlah per halaman</label><select id="wpPageSize"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></div></div>
+ <div class="row"><div><label>Filter RT</label><input id="wpRTFilter" placeholder="Semua RT"></div><div><label>Jumlah per halaman</label><select id="wpPageSize"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></div></div>
  <button id="refreshWpBtn" class="secondary">Muat Ulang Data</button>
  <button id="wpSelectAllBtn" class="secondary">Pilih Semua Hasil</button>
  <button id="wpShareBtn" class="secondary">Bagikan Pilihan via WhatsApp</button>
@@ -322,12 +322,12 @@ async function loadWorkData(){
  renderWp();
 }
 function renderWp(){
- const term=$("wpSearch").value.trim().toLocaleLowerCase("id"),filter=$("wpFilter").value,method=$("wpMethodFilter").value,rtFilter=$("wpRTFilter").value.trim().toLocaleLowerCase("id");
+ const term=$("wpSearch").value.trim().toLocaleLowerCase("id"),filter=$("wpFilter").value,rtFilter=$("wpRTFilter").value.trim().toLocaleLowerCase("id");
  filteredWpRows=wpRows.filter(w=>{
   const p=paymentRows.find(x=>x.wajib_pajak_id===w.id);
-  const status=p?.status||"Belum Lunas",paidMethod=p?.metode_bayar||"";
+  const status=p?.status||"Belum Lunas";
   const matchesTerm=!term||(w.nama||"").toLocaleLowerCase("id").includes(term)||(w.nop||"").toLocaleLowerCase("id").includes(term)||(w.nopd||"").toLocaleLowerCase("id").includes(term);
-  return matchesTerm&&(!rtFilter||String(w.rt||"").toLocaleLowerCase("id").includes(rtFilter))&&(filter==="all"||status===filter)&&(method==="all"||paidMethod===method);
+  return matchesTerm&&(!rtFilter||String(w.rt||"").toLocaleLowerCase("id").includes(rtFilter))&&(filter==="all"||status===filter);
  });
  const pageSize=Number($("wpPageSize").value||20),pages=Math.max(1,Math.ceil(filteredWpRows.length/pageSize));
  currentWpPage=Math.min(Math.max(1,currentWpPage),pages);
@@ -341,7 +341,7 @@ function renderWp(){
   pick.onchange=()=>{if(pick.checked)selectedWpIds.add(w.id);else selectedWpIds.delete(w.id);updateWpSelectionInfo();};
   const top=document.createElement("div");top.innerHTML="<b>"+esc(w.nama)+"</b> <span class='pill'>"+esc(p?.status||"Belum Lunas")+"</span>";
   top.prepend(pick);
-  const detail=document.createElement("p");detail.className="muted";detail.textContent="NOP: "+w.nop+" • RT: "+(w.rt||"-")+" • Target: "+rupiah(w.nominal_pajak)+" • "+(w.pemilik_sekarang||"")+(p?.metode_bayar?" • "+(p.metode_bayar==="Khanief"?"Tunai":p.metode_bayar):"");
+  const detail=document.createElement("p");detail.className="muted";detail.textContent="NOP: "+w.nop+" • RT: "+(w.rt||"-")+" • Target: "+rupiah(w.nominal_pajak)+" • "+(w.pemilik_sekarang||"");
   const actions=document.createElement("div");
   const payBtn=document.createElement("button");payBtn.textContent=p?.status==="Lunas"?"Batalkan Lunas":"Catat Lunas";payBtn.onclick=()=>togglePayment(w,p);
   const editBtn=document.createElement("button");editBtn.textContent="Edit";editBtn.className="secondary";editBtn.onclick=()=>editWp(w);
@@ -426,10 +426,8 @@ async function togglePayment(w,p){
   if(!confirm("Batalkan status lunas untuk "+w.nama+"?"))return;
   const {error}=await db.from("pembayaran_pbb").update({status:"Belum Lunas",tanggal_bayar:null,jumlah_bayar:0,metode_bayar:null,status_setoran:null,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
  }else{
-  const method=prompt("Metode pembayaran: ketik Tunai atau Online","Tunai");if(!method)return;
-  const m=method.trim().toLowerCase();if(!["tunai","online"].includes(m))throw Error("Metode harus Tunai atau Online.");
-  let setoran=null;if(m==="tunai"){setoran=prompt("Status setoran: Sudah Setor atau Belum Setor","Belum Setor");if(!setoran)return;if(!["sudah setor","belum setor"].includes(setoran.trim().toLowerCase()))throw Error("Status setoran tidak valid.");setoran=setoran.trim().toLowerCase()==="sudah setor"?"Sudah Setor":"Belum Setor";}else setoran="Sudah Setor";
-  const {error}=await db.from("pembayaran_pbb").update({status:"Lunas",tanggal_bayar:new Date().toISOString().slice(0,10),jumlah_bayar:Number(w.nominal_pajak||0),metode_bayar:m==="online"?"Online":"Khanief",status_setoran:setoran,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
+  if(!confirm("Catat pembayaran PBB "+w.nama+" sebagai LUNAS sebesar "+rupiah(w.nominal_pajak)+"?"))return;
+  const {error}=await db.from("pembayaran_pbb").update({status:"Lunas",tanggal_bayar:new Date().toISOString().slice(0,10),jumlah_bayar:Number(w.nominal_pajak||0),metode_bayar:null,status_setoran:null,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
  }
  await loadWorkData();
 }
@@ -446,7 +444,7 @@ async function deleteWp(w){
 }
 $("openDusunBtn").onclick=()=>openSelectedDusun().catch(e=>alert(e.message));
 $("workYear").onchange=()=>loadWorkData().catch(e=>alert(e.message));
-$("wpSearch").oninput=()=>{currentWpPage=1;renderWp();};$("wpFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpMethodFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpRTFilter").oninput=()=>{currentWpPage=1;renderWp();};$("wpPageSize").onchange=()=>{currentWpPage=1;renderWp();};$("wpPagePrev").onclick=()=>{currentWpPage--;renderWp();};$("wpPageNext").onclick=()=>{currentWpPage++;renderWp();};$("wpSelectAllBtn").onclick=()=>{if(filteredWpRows.every(w=>selectedWpIds.has(w.id)))filteredWpRows.forEach(w=>selectedWpIds.delete(w.id));else filteredWpRows.forEach(w=>selectedWpIds.add(w.id));renderWp();};$("wpShareBtn").onclick=()=>{try{shareSelectedWp();}catch(e){alert(e.message);}};$("wpPrintSelectedBtn").onclick=()=>{try{printSelectedWp();}catch(e){alert(e.message);}};$("wpPrintReceiptsBtn").onclick=()=>{try{printSelectedReceipts();}catch(e){alert(e.message);}};$("wpExportSelectedJpgBtn").onclick=()=>exportSelectedJpg().catch(e=>alert(e.message));$("exportReportJpgBtn").onclick=()=>exportReportJpg().catch(e=>alert(e.message));
+$("wpSearch").oninput=()=>{currentWpPage=1;renderWp();};$("wpFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpRTFilter").oninput=()=>{currentWpPage=1;renderWp();};$("wpPageSize").onchange=()=>{currentWpPage=1;renderWp();};$("wpPagePrev").onclick=()=>{currentWpPage--;renderWp();};$("wpPageNext").onclick=()=>{currentWpPage++;renderWp();};$("wpSelectAllBtn").onclick=()=>{if(filteredWpRows.every(w=>selectedWpIds.has(w.id)))filteredWpRows.forEach(w=>selectedWpIds.delete(w.id));else filteredWpRows.forEach(w=>selectedWpIds.add(w.id));renderWp();};$("wpShareBtn").onclick=()=>{try{shareSelectedWp();}catch(e){alert(e.message);}};$("wpPrintSelectedBtn").onclick=()=>{try{printSelectedWp();}catch(e){alert(e.message);}};$("wpPrintReceiptsBtn").onclick=()=>{try{printSelectedReceipts();}catch(e){alert(e.message);}};$("wpExportSelectedJpgBtn").onclick=()=>exportSelectedJpg().catch(e=>alert(e.message));$("exportReportJpgBtn").onclick=()=>exportReportJpg().catch(e=>alert(e.message));
 $("addWpBtn").onclick=()=>addWp().catch(e=>msg("wpMsg",e.message));
 $("refreshWpBtn").onclick=()=>loadWorkData().catch(e=>alert(e.message));
 
