@@ -217,6 +217,7 @@ async function loadAdmin(){
  ]);
  if(req.error)throw req.error;if(dus.error)throw dus.error;
  dusunRows=dus.data||[];
+ const {data:masterRT,error:masterError}=await db.from("pbb_dusun_rt_master").select("dusun_id,rt").order("rt");if(masterError)throw masterError;
  await loadAdminRTMembers();
  $("requestsList").innerHTML="";
  if(!req.data?.length)$("requestsList").textContent="Belum ada permohonan.";
@@ -240,7 +241,7 @@ async function loadAdmin(){
  $("dusunList").innerHTML="";
  const sel=$("createDusunSelect");sel.innerHTML='<option value="">Pilih dusun</option>';
  for(const d of dusunRows){
-  const box=document.createElement("div");box.className="item";box.textContent=d.nama;
+  const box=document.createElement("div");box.className="item";const rts=(masterRT||[]).filter(x=>x.dusun_id===d.id).map(x=>x.rt);box.textContent=d.nama+" — "+(rts.length?rts.join(", "):"RT belum diatur");
   $("dusunList").append(box);
   const opt=document.createElement("option");opt.value=d.id;opt.textContent=d.nama;sel.append(opt);
  }
