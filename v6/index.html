@@ -99,7 +99,7 @@ function resetPanels(){["authCard","changePasswordCard","applyCard","adminCard",
 async function connect(){
  const url=$("sbUrl").value.trim(),key=$("sbKey").value.trim();
  if(!url||!key)throw Error("URL dan publishable key wajib diisi.");
- db=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ localStorage.setItem("pbb6_url",url);localStorage.setItem("pbb6_key",key);\n db=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const {data,error}=await db.auth.getSession();if(error)throw error;
  session=data.session;user=session?.user||null;show("connectCard",false);
  if(user)await routeUser();else show("authCard",true);
