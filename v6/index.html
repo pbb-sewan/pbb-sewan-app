@@ -101,7 +101,6 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
   <div class="item"><div class="muted">Belum lunas</div><h2 id="sumUnpaid">Rp0</h2><small id="pctUnpaid">0% dari nominal target</small></div>
   <div class="item"><div class="muted">Wajib pajak</div><h2 id="sumCount">0</h2></div>
  </div>
- <div class="row"><div class="item"><div class="muted">Masuk bank</div><b id="sumBank">Rp0</b></div><div class="item"><div class="muted">Masih dipegang</div><b id="sumHeld">Rp0</b></div></div>
  <h3>Tambah wajib pajak</h3>
  <div class="row"><div><label>NOP</label><input id="wpNop"></div><div><label>NOPD (opsional)</label><input id="wpNopd"></div></div>
  <label>Nama wajib pajak</label><input id="wpNama">
@@ -124,24 +123,10 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
 <button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button> <button id="exportReportJpgBtn" class="secondary">Ekspor JPG</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
-<hr><h3>Rekap posisi uang</h3>
-<button id="loadMoneyBtn" class="secondary">Muat Rekap Posisi Uang</button>
-<div id="moneySummary" class="item"></div><div id="moneyRows"></div>
-<hr><h3>Pencatatan setoran ke bank</h3>
-<p class="muted">Catat setoran yang benar-benar diserahkan ke bank. Pencatatan ini tidak otomatis mengubah status pembayaran wajib pajak.</p>
-<div class="row"><div><label>Tanggal setor</label><input id="depositDate" type="date"></div><div><label>Nama penyetor</label><input id="depositName" placeholder="Nama orang yang menyetor"></div></div>
-<label>Jumlah setoran (Rp)</label><input id="depositAmount" type="number" min="1" step="1">
-<label>Catatan setoran</label><input id="depositNote" placeholder="Opsional">
-<button id="addDepositBtn">Simpan Setoran</button><div id="depositMsg" class="msg hidden"></div>
-<h3>Riwayat setoran dusun</h3><button id="loadDepositsBtn" class="secondary">Muat Riwayat Setoran</button>
-<div id="depositRows"></div><div id="depositRekap"></div>
-<hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
-<hr><h3>Catatan dusun</h3>
-<label>Judul catatan</label><input id="noteTitle"><label>Isi catatan</label><textarea id="noteBody"></textarea>
-<button id="addNoteBtn">Simpan Catatan</button><div id="notesList"></div>
+hapus seluruh UI posisi uang dan setoran<hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
 <div id="backupSection">
 <hr><h3>Backup dan restore (Admin Utama)</h3>
-<p class="muted">Backup memuat data wajib pajak, pembayaran, catatan, register setoran, waktu pencatatan, dan informasi perangkat. File foto tidak ikut tersalin; yang disimpan hanya alamat file fotonya.</p>
+<p class="muted">Backup memuat data wajib pajak, pembayaran, waktu pencatatan, dan informasi perangkat. File foto tidak ikut tersalin; yang disimpan hanya alamat file fotonya.</p>
 <p class="muted">Restore menggabungkan atau memperbarui data yang cocok berdasarkan NOP dan tahun. Data yang tidak ada di file backup tidak dihapus. Fitur ini hanya tersedia untuk Admin Utama.</p>
 <button id="backupBtn" class="secondary">Unduh Backup JSON</button>
 <label>Pilih file backup JSON untuk restore</label><input id="restoreFile" type="file" accept="application/json">
@@ -553,9 +538,6 @@ async function addDeposit(){
  $("depositName").value="";$("depositAmount").value="";$("depositNote").value="";
  await loadDeposits();msg("depositMsg","Setoran berhasil dicatat.",true);
 }
-$("loadMoneyBtn").onclick=()=>loadMoneyPosition().catch(e=>alert(e.message));
-$("addDepositBtn").onclick=()=>addDeposit().catch(e=>msg("depositMsg",e.message));
-$("loadDepositsBtn").onclick=()=>loadDeposits().catch(e=>alert(e.message));
 $("exportReportBtn").onclick=()=>{try{exportReportCsv();}catch(e){alert(e.message);}};
 
 async function loadReport(){
@@ -576,27 +558,15 @@ async function loadReport(){
 
 async function loadHistory(){
  if(!activeDusunId)throw Error("Pilih dusun dahulu.");
- const [a,b,c,d]=await Promise.all([
+ const [a,b]=await Promise.all([
   db.from("pbb_riwayat_wajib_pajak").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60),
-  db.from("pbb_riwayat_pembayaran").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60),
-  db.from("pbb_riwayat_setoran").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60),
-  db.from("pbb_riwayat_catatan").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60)
+  db.from("pbb_riwayat_pembayaran").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60)
  ]);
- if(a.error)throw a.error;if(b.error)throw b.error;if(c.error)throw c.error;if(d.error)throw d.error;
- const rows=[...(a.data||[]).map(x=>({...x,jenis:"Data WP"})),...(b.data||[]).map(x=>({...x,jenis:"Pembayaran"})),...(c.data||[]).map(x=>({...x,jenis:"Setoran"})),...(d.data||[]).map(x=>({...x,jenis:"Catatan dusun"}))].sort((x,y)=>new Date(y.dilakukan_pada)-new Date(x.dilakukan_pada)).slice(0,100);
+ if(a.error)throw a.error;if(b.error)throw b.error;
+ const rows=[...(a.data||[]).map(x=>({...x,jenis:"Data WP"})),...(b.data||[]).map(x=>({...x,jenis:"Pembayaran"}))].sort((x,y)=>new Date(y.dilakukan_pada)-new Date(x.dilakukan_pada)).slice(0,100);
  const host=$("historyList");host.innerHTML="";
  if(!rows.length){host.textContent="Belum ada riwayat.";return;}
  rows.forEach(x=>{const el=document.createElement("div");el.className="item";el.textContent=dateFmt(x.dilakukan_pada)+" "+new Date(x.dilakukan_pada).toLocaleTimeString("id-ID")+" • "+x.jenis+" • "+x.aksi+" • "+JSON.stringify(x.data_baru||x.data_lama||{}).slice(0,180);host.append(el);});
-}
-async function loadNotes(){
- const {data,error}=await db.from("pbb_catatan").select("id,tanggal,judul,isi,created_at").eq("dusun_id",activeDusunId).order("tanggal",{ascending:false}).limit(100);
- if(error)throw error;const host=$("notesList");host.innerHTML="";
- (data||[]).forEach(n=>{const el=document.createElement("div");el.className="item";const t=document.createElement("b");t.textContent=dateFmt(n.tanggal)+" • "+n.judul;const p=document.createElement("p");p.textContent=n.isi;const del=document.createElement("button");del.className="danger";del.textContent="Hapus";del.onclick=async()=>{if(!confirm("Hapus catatan ini?"))return;const {error}=await db.from("pbb_catatan").delete().eq("id",n.id);if(error)alert(error.message);else loadNotes().catch(e=>alert(e.message));};el.append(t,p,del);host.append(el);});
-}
-async function addNote(){
- const title=$("noteTitle").value.trim(),body=$("noteBody").value.trim();if(!title)throw Error("Judul catatan wajib diisi.");
- const {error}=await db.from("pbb_catatan").insert({dusun_id:activeDusunId,judul:title,isi:body,last_device:navigator.userAgent.slice(0,180)});if(error)throw error;
- $("noteTitle").value="";$("noteBody").value="";await loadNotes();
 }
 async function downloadBackup(){
  const {data,error}=await db.rpc("pbb_backup_dusun_data",{p_dusun_id:activeDusunId});if(error)throw error;
@@ -609,7 +579,7 @@ async function restoreBackup(){
  if(role!=="admin_utama")throw Error("Hanya Admin Utama yang boleh memulihkan backup.");
  if(!confirm("PERINGATAN: Data yang cocok akan ditambahkan atau diperbarui. Data lain tidak dihapus. Pastikan dusun dan file benar. Lanjutkan?"))return;
  const raw=JSON.parse(await file.text());const {data,error}=await db.rpc("pbb_restore_dusun_data",{p_dusun_id:activeDusunId,p_backup:raw});if(error)throw error;
- await loadWorkData();await loadReport();await loadNotes();msg("backupMsg","Penggabungan backup selesai: "+JSON.stringify(data)+". Data yang tidak ada di backup tidak dihapus.",true);
+ await loadWorkData();await loadReport();msg("backupMsg","Penggabungan backup selesai: "+JSON.stringify(data)+". Data yang tidak ada di backup tidak dihapus.",true);
 }
 $("loadReportBtn").onclick=()=>loadReport().catch(e=>alert(e.message));
 $("reportFilter").onchange=()=>loadReport().catch(e=>alert(e.message));$("reportRT").onchange=()=>loadReport().catch(e=>alert(e.message));
@@ -624,8 +594,6 @@ $("loadHistoryBtn").onclick=()=>loadHistory().catch(e=>alert(e.message));
 $("addNoteBtn").onclick=()=>addNote().catch(e=>alert(e.message));
 $("backupBtn").onclick=()=>downloadBackup().catch(e=>msg("backupMsg",e.message));
 $("restoreBtn").onclick=()=>restoreBackup().catch(e=>msg("backupMsg",e.message));
-const oldLoadWorkData=loadWorkData;
-loadWorkData=async function(){await oldLoadWorkData();await loadNotes().catch(e=>console.warn(e));};
 const priorRouteUser=routeUser;
 routeUser=async function(){await priorRouteUser();if(role==="admin_utama"||role==="admin_dusun")await startWork();};
 try{const savedUrl=localStorage.getItem("pbb6_url"),savedKey=localStorage.getItem("pbb6_key");if(savedUrl&&savedKey){$("sbUrl").value=savedUrl;$("sbKey").value=savedKey;await connect();}}catch(e){show("connectCard",true);msg("connectMsg",e.message);}
