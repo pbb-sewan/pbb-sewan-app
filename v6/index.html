@@ -112,7 +112,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <button id="addWpBtn">Simpan Wajib Pajak</button><div id="wpMsg" class="msg hidden"></div>
  <hr><h3>Daftar wajib pajak</h3>
  <div class="row"><div><label>Cari nama / NOP</label><input id="wpSearch" placeholder="Ketik nama atau NOP"></div><div><label>Filter pembayaran</label><select id="wpFilter"><option value="all">Semua</option><option value="Belum Lunas">Belum lunas</option><option value="Lunas">Lunas</option></select></div></div>
- <div class="row"><div><label>Filter RT</label><input id="wpRTFilter" placeholder="Semua RT"></div><div><label>Filter metode bayar</label><select id="wpMethodFilter"><option value="all">Semua metode</option><option value="Khanief">Khanief</option><option value="Online">Online</option></select></div><div><label>Jumlah per halaman</label><select id="wpPageSize"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></div></div>
+ <div class="row"><div><label>Filter RT</label><input id="wpRTFilter" placeholder="Semua RT"></div><div><label>Filter metode bayar</label><select id="wpMethodFilter"><option value="all">Semua metode</option><option value="Khanief">Tunai</option><option value="Online">Online</option></select></div><div><label>Jumlah per halaman</label><select id="wpPageSize"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></div></div>
  <button id="refreshWpBtn" class="secondary">Muat Ulang Data</button>
  <button id="wpSelectAllBtn" class="secondary">Pilih Semua Hasil</button>
  <button id="wpShareBtn" class="secondary">Bagikan Pilihan via WhatsApp</button>
@@ -121,7 +121,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <div id="wpList" class="muted">Pilih dusun terlebih dahulu.</div>
  <div class="row"><button id="wpPagePrev" class="secondary">Sebelumnya</button><span id="wpPageInfo">Halaman 1</span><button id="wpPageNext" class="secondary">Berikutnya</button></div>
 <hr><h3>Laporan dan cetak</h3>
-<div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div><div><label>Filter metode</label><select id="reportMethod"><option value="all">Semua metode</option><option value="Khanief">Khanief</option><option value="Online">Online</option></select></div></div>
+<div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div><div><label>Filter metode</label><select id="reportMethod"><option value="all">Semua metode</option><option value="Khanief">Tunai</option><option value="Online">Online</option></select></div></div>
 <button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button> <button id="exportReportJpgBtn" class="secondary">Ekspor JPG</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
 <hr><h3>Rekap posisi uang</h3>
@@ -360,7 +360,7 @@ function updateWpSelectionInfo(){
 function shareSelectedWp(){
  const rows=wpRows.filter(w=>selectedWpIds.has(w.id));if(!rows.length)throw Error("Pilih minimal satu wajib pajak.");
  const lines=rows.slice(0,45).map(w=>{const p=paymentRows.find(x=>x.wajib_pajak_id===w.id);return "- "+w.nama+" | NOP "+w.nop+" | RT "+(w.rt||"-")+" | "+(p?.status||"Belum Lunas")+" | "+rupiah(w.nominal_pajak);});
- const textMsg="Rekap PBB SEWAN\nDusun: "+$("workDusunLabel").textContent+"\nTahun: "+$("workYear").value+"\n"+lines.join("\n")+(rows.length>45?"\n... dan "+(rows.length-45)+" data lainnya.":"")+"\n\nTerima Kasih\nPenarik Pajak: Muhammad Khanief";
+ const textMsg="Rekap PBB SEWAN\nDusun: "+$("workDusunLabel").textContent+"\nTahun: "+$("workYear").value+"\n"+lines.join("\n")+(rows.length>45?"\n... dan "+(rows.length-45)+" data lainnya.":"")+"\n\nTerima Kasih";
  window.open("https://wa.me/?text="+encodeURIComponent(textMsg),"_blank");
 }
 function printSelectedWp(){
@@ -426,10 +426,10 @@ async function togglePayment(w,p){
   if(!confirm("Batalkan status lunas untuk "+w.nama+"?"))return;
   const {error}=await db.from("pembayaran_pbb").update({status:"Belum Lunas",tanggal_bayar:null,jumlah_bayar:0,metode_bayar:null,status_setoran:null,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
  }else{
-  const method=prompt("Metode pembayaran: ketik Khanief atau Online","Khanief");if(!method)return;
-  const m=method.trim().toLowerCase();if(!["khanief","online"].includes(m))throw Error("Metode harus Khanief atau Online.");
-  let setoran=null;if(m==="khanief"){setoran=prompt("Status setoran: Sudah Setor atau Belum Setor","Belum Setor");if(!setoran)return;if(!["sudah setor","belum setor"].includes(setoran.trim().toLowerCase()))throw Error("Status setoran tidak valid.");setoran=setoran.trim().toLowerCase()==="sudah setor"?"Sudah Setor":"Belum Setor";}else setoran="Sudah Setor";
-  const {error}=await db.from("pembayaran_pbb").update({status:"Lunas",tanggal_bayar:new Date().toISOString().slice(0,10),jumlah_bayar:Number(w.nominal_pajak||0),metode_bayar:m==="online"?"Online":"Khanief",status_setoran:setoran,petugas_penerima:m==="khanief"?"Khanief":null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
+  const method=prompt("Metode pembayaran: ketik Tunai atau Online","Tunai");if(!method)return;
+  const m=method.trim().toLowerCase();if(!["tunai","online"].includes(m))throw Error("Metode harus Tunai atau Online.");
+  let setoran=null;if(m==="tunai"){setoran=prompt("Status setoran: Sudah Setor atau Belum Setor","Belum Setor");if(!setoran)return;if(!["sudah setor","belum setor"].includes(setoran.trim().toLowerCase()))throw Error("Status setoran tidak valid.");setoran=setoran.trim().toLowerCase()==="sudah setor"?"Sudah Setor":"Belum Setor";}else setoran="Sudah Setor";
+  const {error}=await db.from("pembayaran_pbb").update({status:"Lunas",tanggal_bayar:new Date().toISOString().slice(0,10),jumlah_bayar:Number(w.nominal_pajak||0),metode_bayar:m==="online"?"Online":"Khanief",status_setoran:setoran,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
  }
  await loadWorkData();
 }
@@ -506,14 +506,14 @@ function exportSelectedJpg(){
 function printSelectedReceipts(){
  const rows=wpRows.filter(w=>selectedWpIds.has(w.id)).map(w=>({w,p:paymentRows.find(x=>x.wajib_pajak_id===w.id)})).filter(x=>x.p?.status==="Lunas");
  if(!rows.length)throw Error("Tidak ada wajib pajak lunas yang dipilih.");
- const cards=rows.map(({w,p})=>"<section class='receipt'><h2>BUKTI PEMBAYARAN PBB</h2><p>Dusun: "+esc($("workDusunLabel").textContent)+"</p><p>NOP: "+esc(w.nop)+"</p><p>Nama: "+esc(w.nama)+"</p><p>RT: "+esc(w.rt||"-")+"</p><hr><p>Tahun: "+esc(p.tahun)+"</p><p>Tanggal bayar: "+esc(dateFmt(p.tanggal_bayar))+"</p><p>Jumlah dibayar: <b>"+rupiah(p.jumlah_bayar)+"</b></p><p>Metode: "+esc(p.metode_bayar||"-")+"</p><p>Status setoran: "+esc(p.status_setoran||"-")+"</p><p>Terima Kasih</p><p>Penarik Pajak: Muhammad Khanief</p></section>").join("");
+ const cards=rows.map(({w,p})=>"<section class='receipt'><h2>BUKTI PEMBAYARAN PBB</h2><p>Dusun: "+esc($("workDusunLabel").textContent)+"</p><p>NOP: "+esc(w.nop)+"</p><p>Nama: "+esc(w.nama)+"</p><p>RT: "+esc(w.rt||"-")+"</p><hr><p>Tahun: "+esc(p.tahun)+"</p><p>Tanggal bayar: "+esc(dateFmt(p.tanggal_bayar))+"</p><p>Jumlah dibayar: <b>"+rupiah(p.jumlah_bayar)+"</b></p><p>Metode: "+esc(p.metode_bayar==="Khanief"?"Tunai":(p.metode_bayar||"-"))+"</p><p>Status setoran: "+esc(p.status_setoran||"-")+"</p><p>Terima Kasih</p></section>").join("");
  const win=window.open("","_blank");if(!win)throw Error("Izinkan pop-up untuk mencetak.");
  win.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Bukti Pembayaran PBB</title><style>body{font:14px Arial;padding:18px}.receipt{border:1px solid #555;padding:20px;margin:0 auto 20px;max-width:700px;break-after:page}.receipt:last-child{break-after:auto}h2{text-align:center}</style></head><body>"+cards+"<script>window.onload=()=>window.print()<\\/script></body></html>");win.document.close();setTimeout(()=>win.print(),300);
 }
 function exportReportCsv(){
  if(!reportRows.length)throw Error("Tampilkan laporan terlebih dahulu.");
  const rows=[["NOP","NOPD","Nama Wajib Pajak","Pemilik Sekarang","RT","Status","Target Pajak","Jumlah Bayar","Tanggal Bayar","Metode","Status Setoran","Letak"],
- ...reportRows.map(x=>[x.nop,x.nopd,x.nama,x.pemilik_sekarang,x.rt,x.status_pembayaran,x.target_pajak,x.jumlah_bayar,x.tanggal_bayar,x.metode_bayar,x.status_setoran,x.letak])];
+ ...reportRows.map(x=>[x.nop,x.nopd,x.nama,x.pemilik_sekarang,x.rt,x.status_pembayaran,x.target_pajak,x.jumlah_bayar,x.tanggal_bayar,x.metode_bayar==="Khanief"?"Tunai":x.metode_bayar,x.status_setoran,x.letak])];
  csvDownload("laporan-pbb-"+$("workYear").value+".csv",rows);
 }
 async function loadMoneyPosition(){
