@@ -85,6 +85,30 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <div id="kadusContext" class="item">Memuat wilayah...</div>
 <p class="muted">Tahap ini menguji login, peran, dan pembatasan wilayah RT. Modul wajib pajak, pembayaran, laporan, riwayat, serta backup akan dipasang setelah alur akses dinyatakan benar.</p>
 </section>
+
+<section id="workCard" class="card hidden">
+ <div class="row"><div><h2>Pengelolaan PBB</h2><span id="workDusunLabel" class="pill">Dusun belum dipilih</span></div><div><label>Tahun pajak</label><select id="workYear"><option>2026</option><option>2027</option><option>2025</option></select></div></div>
+ <div id="adminDusunPicker" class="hidden"><label>Pilih dusun yang dikelola</label><select id="activeDusun"><option value="">Pilih dusun</option></select><button id="openDusunBtn">Buka Dusun</button></div>
+ <div class="row">
+  <div class="item"><div class="muted">Total target pajak</div><h2 id="sumTarget">Rp0</h2></div>
+  <div class="item"><div class="muted">Sudah lunas</div><h2 id="sumPaid">Rp0</h2></div>
+  <div class="item"><div class="muted">Belum lunas</div><h2 id="sumUnpaid">Rp0</h2></div>
+  <div class="item"><div class="muted">Wajib pajak</div><h2 id="sumCount">0</h2></div>
+ </div>
+ <div class="row"><div class="item"><div class="muted">Masuk bank</div><b id="sumBank">Rp0</b></div><div class="item"><div class="muted">Masih dipegang</div><b id="sumHeld">Rp0</b></div></div>
+ <h3>Tambah wajib pajak</h3>
+ <div class="row"><div><label>NOP</label><input id="wpNop"></div><div><label>NOPD (opsional)</label><input id="wpNopd"></div></div>
+ <label>Nama wajib pajak</label><input id="wpNama">
+ <label>Pemilik sekarang</label><input id="wpPemilik">
+ <div class="row"><div><label>RT</label><input id="wpRT" placeholder="RT 01"></div><div><label>Luas tanah (m²)</label><input id="wpLuas" type="number" min="0" step="0.01"></div></div>
+ <div class="row"><div><label>Nominal pajak (Rp)</label><input id="wpNominal" type="number" min="0"></div><div><label>Letak / alamat</label><input id="wpLetak"></div></div>
+ <label>Catatan</label><textarea id="wpCatatan"></textarea>
+ <button id="addWpBtn">Simpan Wajib Pajak</button><div id="wpMsg" class="msg hidden"></div>
+ <hr><h3>Daftar wajib pajak</h3>
+ <div class="row"><div><label>Cari nama / NOP</label><input id="wpSearch" placeholder="Ketik nama atau NOP"></div><div><label>Filter pembayaran</label><select id="wpFilter"><option value="all">Semua</option><option value="Belum Lunas">Belum lunas</option><option value="Lunas">Lunas</option></select></div></div>
+ <button id="refreshWpBtn" class="secondary">Muat Ulang Data</button>
+ <div id="wpList" class="muted">Pilih dusun terlebih dahulu.</div>
+</section>
 </main>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -165,6 +189,106 @@ $("createDusunBtn").onclick=async()=>{setBusy("createDusunBtn",true,"Buat Dusun"
 $("createAccountBtn").onclick=async()=>{setBusy("createAccountBtn",true,"Buat Akun Kepala Dusun");try{const rts=rtList($("createRT").value);if(!rts.length)throw Error("Masukkan minimal satu RT.");const {data:s}=await db.auth.getSession();const token=s.session?.access_token;if(!token)throw Error("Sesi login tidak ditemukan.");const res=await fetch("https://jikrxatgnqudfskswbae.supabase.co/functions/v1/create-kadus-account",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":$("sbKey").value.trim()},body:JSON.stringify({nama:$("createNama").value.trim(),email:$("createEmail").value.trim(),password:$("createPassword").value,dusun_id:$("createDusunSelect").value,rt:rts})});const out=await res.json();if(!res.ok)throw Error(out.error||"Gagal membuat akun.");msg("createAccountMsg","Akun Kepala Dusun berhasil dibuat untuk "+out.dusun+". Pengguna wajib mengganti kata sandi saat login pertama.",true);$("createNama").value=$("createEmail").value=$("createPassword").value=$("createRT").value="";}catch(e){msg("createAccountMsg",e.message);}finally{setBusy("createAccountBtn",false,"Buat Akun Kepala Dusun");}};
 async function logout(){await db.auth.signOut();session=null;user=null;role=null;resetPanels();show("authCard",true);}
 $("logoutAdminBtn").onclick=logout;$("logoutKadusBtn").onclick=logout;
+
+let activeDusunId=null,wpRows=[],paymentRows=[];
+const rupiah=v=>"Rp"+Number(v||0).toLocaleString("id-ID");
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function startWork(){
+ show("workCard",true);
+ if(role==="admin_utama"){
+  show("adminDusunPicker",true);
+  const sel=$("activeDusun");sel.innerHTML='<option value="">Pilih dusun</option>';
+  dusunRows.forEach(d=>{const o=document.createElement("option");o.value=d.id;o.textContent=d.nama;sel.append(o);});
+ }else{
+  const {data,error}=await db.rpc("pbb_get_my_dusun_context");if(error)throw error;
+  const first=(data||[]).find(x=>x.is_active);
+  if(!first){$("wpList").textContent="Akun belum memiliki wilayah aktif.";return;}
+  activeDusunId=first.dusun_id;$("workDusunLabel").textContent=first.nama_dusun;
+  await loadWorkData();
+ }
+}
+async function openSelectedDusun(){
+ const id=$("activeDusun").value;if(!id)throw Error("Pilih dusun terlebih dahulu.");
+ activeDusunId=id;const d=dusunRows.find(x=>x.id===id);$("workDusunLabel").textContent=d?.nama||"Dusun terpilih";
+ await loadWorkData();
+}
+async function loadWorkData(){
+ if(!activeDusunId)return;
+ const year=Number($("workYear").value);
+ const {error:prepError}=await db.rpc("pbb_prepare_dusun_year",{p_dusun_id:activeDusunId,p_tahun:year});
+ if(prepError)throw prepError;
+ const [dash,wp,pay]=await Promise.all([
+  db.from("pbb_dashboard_ringkasan").select("*").eq("dusun_id",activeDusunId).eq("tahun",year).maybeSingle(),
+  db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,catatan,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
+  db.from("pembayaran_pbb").select("id,wajib_pajak_id,tahun,status,tanggal_bayar,jumlah_bayar,metode_bayar,status_setoran,petugas_penerima,last_device,updated_at").eq("dusun_id",activeDusunId).eq("tahun",year)
+ ]);
+ if(dash.error)throw dash.error;if(wp.error)throw wp.error;if(pay.error)throw pay.error;
+ wpRows=wp.data||[];paymentRows=pay.data||[];
+ const d=dash.data||{};
+ $("sumTarget").textContent=rupiah(d.total_target);$("sumPaid").textContent=rupiah(d.total_lunas);$("sumUnpaid").textContent=rupiah(d.total_belum_lunas);
+ $("sumCount").textContent=String(d.jumlah_wajib_pajak||wpRows.length);$("sumBank").textContent=rupiah(d.total_masuk_bank);$("sumHeld").textContent=rupiah(d.total_di_petugas);
+ renderWp();
+}
+function renderWp(){
+ const term=$("wpSearch").value.trim().toLocaleLowerCase("id"),filter=$("wpFilter").value;
+ const rows=wpRows.filter(w=>{
+  const p=paymentRows.find(x=>x.wajib_pajak_id===w.id);
+  const status=p?.status||"Belum Lunas";
+  return (!term||(w.nama||"").toLocaleLowerCase("id").includes(term)||(w.nop||"").toLocaleLowerCase("id").includes(term)||(w.nopd||"").toLocaleLowerCase("id").includes(term))&&(filter==="all"||status===filter);
+ });
+ const host=$("wpList");host.innerHTML="";
+ if(!rows.length){host.textContent="Tidak ada data yang cocok.";return;}
+ rows.forEach(w=>{
+  const p=paymentRows.find(x=>x.wajib_pajak_id===w.id);
+  const box=document.createElement("div");box.className="item";
+  const top=document.createElement("div");top.innerHTML="<b>"+esc(w.nama)+"</b> <span class='pill'>"+esc(p?.status||"Belum Lunas")+"</span>";
+  const detail=document.createElement("p");detail.className="muted";detail.textContent="NOP: "+w.nop+" • RT: "+(w.rt||"-")+" • Target: "+rupiah(w.nominal_pajak)+" • "+(w.pemilik_sekarang||"");
+  const actions=document.createElement("div");
+  const payBtn=document.createElement("button");payBtn.textContent=p?.status==="Lunas"?"Batalkan Lunas":"Catat Lunas";payBtn.onclick=()=>togglePayment(w,p);
+  const editBtn=document.createElement("button");editBtn.textContent="Edit";editBtn.className="secondary";editBtn.onclick=()=>editWp(w);
+  const delBtn=document.createElement("button");delBtn.textContent="Hapus";delBtn.className="danger";delBtn.onclick=()=>deleteWp(w);
+  actions.append(payBtn,editBtn,delBtn);box.append(top,detail,actions);host.append(box);
+ });
+}
+async function addWp(){
+ const nop=$("wpNop").value.trim(),nama=$("wpNama").value.trim(),rt=$("wpRT").value.trim();
+ if(!nop||!nama||!rt)throw Error("NOP, nama, dan RT wajib diisi.");
+ const payload={dusun_id:activeDusunId,nop,nama,nopd:$("wpNopd").value.trim()||null,pemilik_sekarang:$("wpPemilik").value.trim()||null,rt,luas_tanah:Number($("wpLuas").value||0),nominal_pajak:Number($("wpNominal").value||0),letak:$("wpLetak").value.trim()||null,catatan:$("wpCatatan").value.trim()||null,last_device:navigator.userAgent.slice(0,180)};
+ const {error}=await db.from("wajib_pajak").insert(payload);if(error)throw error;
+ ["wpNop","wpNopd","wpNama","wpPemilik","wpRT","wpLuas","wpNominal","wpLetak","wpCatatan"].forEach(id=>$(id).value="");
+ await loadWorkData();msg("wpMsg","Wajib pajak berhasil ditambahkan.",true);
+}
+async function togglePayment(w,p){
+ if(!p)throw Error("Data pembayaran tahun ini belum terbentuk. Muat ulang dahulu.");
+ if(p.status==="Lunas"){
+  if(!confirm("Batalkan status lunas untuk "+w.nama+"?"))return;
+  const {error}=await db.from("pembayaran_pbb").update({status:"Belum Lunas",tanggal_bayar:null,jumlah_bayar:0,metode_bayar:null,status_setoran:null,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
+ }else{
+  const method=prompt("Metode pembayaran: ketik Khanief atau Online","Khanief");if(!method)return;
+  const m=method.trim().toLowerCase();if(!["khanief","online"].includes(m))throw Error("Metode harus Khanief atau Online.");
+  let setoran=null;if(m==="khanief"){setoran=prompt("Status setoran: Sudah Setor atau Belum Setor","Belum Setor");if(!setoran)return;if(!["sudah setor","belum setor"].includes(setoran.trim().toLowerCase()))throw Error("Status setoran tidak valid.");setoran=setoran.trim().toLowerCase()==="sudah setor"?"Sudah Setor":"Belum Setor";}else setoran="Sudah Setor";
+  const {error}=await db.from("pembayaran_pbb").update({status:"Lunas",tanggal_bayar:new Date().toISOString().slice(0,10),jumlah_bayar:Number(w.nominal_pajak||0),metode_bayar:m==="online"?"Online":"Khanief",status_setoran:setoran,petugas_penerima:m==="khanief"?"Khanief":null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
+ }
+ await loadWorkData();
+}
+async function editWp(w){
+ const nama=prompt("Nama wajib pajak:",w.nama);if(nama===null)return;
+ const nop=prompt("NOP:",w.nop);if(nop===null)return;
+ const nominal=prompt("Nominal pajak (angka):",String(w.nominal_pajak||0));if(nominal===null)return;
+ const rt=prompt("RT:",w.rt||"");if(rt===null)return;
+ const {error}=await db.from("wajib_pajak").update({nama:nama.trim(),nop:nop.trim(),nominal_pajak:Number(nominal)||0,rt:rt.trim(),last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);if(error)throw error;await loadWorkData();
+}
+async function deleteWp(w){
+ if(!confirm("Hapus data wajib pajak "+w.nama+"? Tindakan ini tidak dapat dibatalkan."))return;
+ const {error}=await db.from("wajib_pajak").delete().eq("id",w.id);if(error)throw error;await loadWorkData();
+}
+$("openDusunBtn").onclick=()=>openSelectedDusun().catch(e=>alert(e.message));
+$("workYear").onchange=()=>loadWorkData().catch(e=>alert(e.message));
+$("wpSearch").oninput=renderWp;$("wpFilter").onchange=renderWp;
+$("addWpBtn").onclick=()=>addWp().catch(e=>msg("wpMsg",e.message));
+$("refreshWpBtn").onclick=()=>loadWorkData().catch(e=>alert(e.message));
+const priorRouteUser=routeUser;
+routeUser=async function(){await priorRouteUser();if(role==="admin_utama"||role==="admin_dusun")await startWork();};
 try{const savedUrl=localStorage.getItem("pbb6_url"),savedKey=localStorage.getItem("pbb6_key");if(savedUrl&&savedKey){$("sbUrl").value=savedUrl;$("sbKey").value=savedKey;await connect();}}catch(e){show("connectCard",true);msg("connectMsg",e.message);}
 </script>
 </body>
