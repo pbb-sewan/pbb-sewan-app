@@ -352,7 +352,7 @@ async function viewEvidence(w){
  const {data,error}=await db.storage.from("pbb-bukti").createSignedUrl(w.foto_bukti,300);if(error)throw error;
  window.open(data.signedUrl,"_blank","noopener");
 }
-\nasync function togglePayment(w,p){
+async function togglePayment(w,p){
  if(!p)throw Error("Data pembayaran tahun ini belum terbentuk. Muat ulang dahulu.");
  if(p.status==="Lunas"){
   if(!confirm("Batalkan status lunas untuk "+w.nama+"?"))return;
@@ -518,7 +518,7 @@ $("backupBtn").onclick=()=>downloadBackup().catch(e=>msg("backupMsg",e.message))
 $("restoreBtn").onclick=()=>restoreBackup().catch(e=>msg("backupMsg",e.message));
 const oldLoadWorkData=loadWorkData;
 loadWorkData=async function(){await oldLoadWorkData();await loadNotes().catch(e=>console.warn(e));};
-\nconst priorRouteUser=routeUser;
+const priorRouteUser=routeUser;
 routeUser=async function(){await priorRouteUser();if(role==="admin_utama"||role==="admin_dusun")await startWork();};
 try{const savedUrl=localStorage.getItem("pbb6_url"),savedKey=localStorage.getItem("pbb6_key");if(savedUrl&&savedKey){$("sbUrl").value=savedUrl;$("sbKey").value=savedKey;await connect();}}catch(e){show("connectCard",true);msg("connectMsg",e.message);}
 </script>
