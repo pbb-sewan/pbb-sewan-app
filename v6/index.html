@@ -465,14 +465,14 @@ async function exportRowsJpg(rows,title,filename){
  wrap.style.cssText="position:fixed;left:-12000px;top:0;width:1100px;padding:36px;background:#fff;color:#111;font:18px Arial;z-index:-1;";
  const heading=document.createElement("h1");heading.textContent=title;heading.style.textAlign="center";wrap.append(heading);
  const meta=document.createElement("p");meta.textContent=$("workDusunLabel").textContent+" • Tahun "+$("workYear").value;wrap.append(meta);
- const total=rows.reduce((a,x)=>a+Number(x.target_pajak||0),0),paid=rows.reduce((a,x)=>a+(x.status_pembayaran==="Lunas"?Number(x.jumlah_bayar||0):0),0),held=rows.filter(x=>x.metode_bayar==="Khanief"&&x.status_setoran==="Belum Setor").reduce((a,x)=>a+Number(x.jumlah_bayar||0),0),bank=rows.filter(x=>x.metode_bayar==="Online"||(x.metode_bayar==="Khanief"&&x.status_setoran==="Sudah Setor")).reduce((a,x)=>a+Number(x.jumlah_bayar||0),0);
- const summary=document.createElement("p");summary.textContent="Data: "+rows.length+" • Target: "+rupiah(total)+" • Lunas: "+rupiah(paid)+" • Dipegang: "+rupiah(held)+" • Masuk bank: "+rupiah(bank);wrap.append(summary);
+ const total=rows.reduce((a,x)=>a+Number(x.target_pajak||0),0),paid=rows.reduce((a,x)=>a+(x.status_pembayaran==="Lunas"?Number(x.jumlah_bayar||0):0),0);
+ const summary=document.createElement("p");summary.textContent="Data: "+rows.length+" • Target: "+rupiah(total)+" • Lunas: "+rupiah(paid);wrap.append(summary);
  const table=document.createElement("table");table.style.cssText="width:100%;border-collapse:collapse;font-size:15px;";
- const headers=["No","NOP","Nama","RT","Status","Target","Bayar","Metode","Status Setoran"];
+ const headers=["No","NOP","Nama","RT","Status","Target","Bayar"];
  const thead=document.createElement("thead"),trh=document.createElement("tr");
  headers.forEach(v=>{const th=document.createElement("th");th.textContent=v;th.style.cssText="border:1px solid #555;padding:8px;background:#eee";trh.append(th);});thead.append(trh);table.append(thead);
  const tbody=document.createElement("tbody");
- rows.forEach((x,i)=>{const tr=document.createElement("tr");[i+1,x.nop,x.nama,x.rt||"-",x.status_pembayaran,rupiah(x.target_pajak),rupiah(x.jumlah_bayar),x.metode_bayar==="Khanief"?"Tunai":(x.metode_bayar||"-"),x.status_setoran||"-"].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"-");td.style.cssText="border:1px solid #777;padding:7px";tr.append(td);});tbody.append(tr);});
+ rows.forEach((x,i)=>{const tr=document.createElement("tr");[i+1,x.nop,x.nama,x.rt||"-",x.status_pembayaran,rupiah(x.target_pajak),rupiah(x.jumlah_bayar)].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"-");td.style.cssText="border:1px solid #777;padding:7px";tr.append(td);});tbody.append(tr);});
  table.append(tbody);wrap.append(table);document.body.append(wrap);
  try{
   const canvas=await window.html2canvas(wrap,{scale:2,backgroundColor:"#ffffff",useCORS:false,logging:false});
@@ -483,7 +483,7 @@ async function exportRowsJpg(rows,title,filename){
 }
 function exportReportJpg(){return exportRowsJpg(reportRows,"LAPORAN PBB SEWAN","laporan-pbb-"+$("workYear").value+".jpg");}
 function exportSelectedJpg(){
- const rows=wpRows.filter(w=>selectedWpIds.has(w.id)).map(w=>{const p=paymentRows.find(x=>x.wajib_pajak_id===w.id)||{};return {nop:w.nop,nama:w.nama,rt:w.rt,status_pembayaran:p.status||"Belum Lunas",target_pajak:w.nominal_pajak,jumlah_bayar:p.jumlah_bayar,metode_bayar:p.metode_bayar,status_setoran:p.status_setoran};});
+ const rows=wpRows.filter(w=>selectedWpIds.has(w.id)).map(w=>{const p=paymentRows.find(x=>x.wajib_pajak_id===w.id)||{};return {nop:w.nop,nama:w.nama,rt:w.rt,status_pembayaran:p.status||"Belum Lunas",target_pajak:w.nominal_pajak,jumlah_bayar:p.jumlah_bayar,};});
  return exportRowsJpg(rows,"DAFTAR PBB TERPILIH","pbb-terpilih-"+$("workYear").value+".jpg");
 }
 function printSelectedReceipts(){
@@ -495,8 +495,8 @@ function printSelectedReceipts(){
 }
 function exportReportCsv(){
  if(!reportRows.length)throw Error("Tampilkan laporan terlebih dahulu.");
- const rows=[["NOP","NOPD","Nama Wajib Pajak","Pemilik Sekarang","RT","Status","Target Pajak","Jumlah Bayar","Tanggal Bayar","Metode","Status Setoran","Letak"],
- ...reportRows.map(x=>[x.nop,x.nopd,x.nama,x.pemilik_sekarang,x.rt,x.status_pembayaran,x.target_pajak,x.jumlah_bayar,x.tanggal_bayar,x.metode_bayar==="Khanief"?"Tunai":x.metode_bayar,x.status_setoran,x.letak])];
+ const rows=[["NOP","NOPD","Nama Wajib Pajak","Pemilik Sekarang","RT","Status","Target Pajak","Jumlah Bayar","Tanggal Bayar","Letak"],
+ ...reportRows.map(x=>[x.nop,x.nopd,x.nama,x.pemilik_sekarang,x.rt,x.status_pembayaran,x.target_pajak,x.jumlah_bayar,x.tanggal_bayar,x.letak])];
  csvDownload("laporan-pbb-"+$("workYear").value+".csv",rows);
 }
 $("exportReportBtn").onclick=()=>{try{exportReportCsv();}catch(e){alert(e.message);}};
@@ -510,9 +510,7 @@ async function loadReport(){
  reportRows=(data||[]).filter(x=>f==="all"||x.status_pembayaran===f);
  const total=reportRows.reduce((a,x)=>a+Number(x.target_pajak||0),0);
  const paid=reportRows.reduce((a,x)=>a+Number(x.nominal_lunas||0),0);
- const held=reportRows.filter(x=>x.metode_bayar==="Khanief"&&x.status_setoran==="Belum Setor").reduce((a,x)=>a+Number(x.jumlah_bayar||0),0);
- const bank=reportRows.filter(x=>x.metode_bayar==="Online"||(x.metode_bayar==="Khanief"&&x.status_setoran==="Sudah Setor")).reduce((a,x)=>a+Number(x.jumlah_bayar||0),0);
- $("reportSummary").textContent="Data: "+reportRows.length+" wajib pajak • Target: "+rupiah(total)+" • Lunas: "+rupiah(paid)+" • Belum lunas: "+rupiah(Math.max(0,total-paid))+" • Dipegang: "+rupiah(held)+" • Masuk bank: "+rupiah(bank);
+ $("reportSummary").textContent="Data: "+reportRows.length+" wajib pajak • Target: "+rupiah(total)+" • Lunas: "+rupiah(paid)+" • Belum lunas: "+rupiah(Math.max(0,total-paid));
  const host=$("reportList");host.innerHTML="";
  reportRows.forEach((x,i)=>{const el=document.createElement("div");el.className="item";el.textContent=(i+1)+". "+x.nama+" | NOP "+x.nop+" | RT "+(x.rt||"-")+" | "+x.status_pembayaran+" | Target "+rupiah(x.target_pajak)+" | Bayar "+rupiah(x.jumlah_bayar);host.append(el);});
 }
@@ -552,7 +550,6 @@ $("printReportBtn").onclick=()=>{
  w.document.close();setTimeout(()=>w.print(),300);
 };
 $("loadHistoryBtn").onclick=()=>loadHistory().catch(e=>alert(e.message));
-$("addNoteBtn").onclick=()=>addNote().catch(e=>alert(e.message));
 $("backupBtn").onclick=()=>downloadBackup().catch(e=>msg("backupMsg",e.message));
 $("restoreBtn").onclick=()=>restoreBackup().catch(e=>msg("backupMsg",e.message));
 const priorRouteUser=routeUser;
