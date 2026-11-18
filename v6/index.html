@@ -469,7 +469,7 @@ async function deleteWp(w){
 $("openDusunBtn").onclick=async()=>{
  const btn=$("openDusunBtn");btn.disabled=true;btn.textContent="Memuat dusun...";
  clearMsg("openDusunMsg");
- try{await openSelectedDusun();msg("openDusunMsg","Dusun berhasil dibuka.",true);}
+ try{await openSelectedDusun();msg("openDusunMsg","Terbuka | role: "+role+" | dusun: "+activeDusunId+" | WP terbaca: "+wpRows.length+" | pembayaran terbaca: "+paymentRows.length,true);}
  catch(e){msg("openDusunMsg","Gagal membuka dusun: "+(e?.message||String(e)));}
  finally{btn.disabled=false;btn.textContent="Buka Dusun";}
 };
