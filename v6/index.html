@@ -128,7 +128,7 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 
 <section id="workCard" class="card hidden">
  <div class="row"><div><h2>Pengelolaan PBB</h2><span id="workDusunLabel" class="pill">Dusun belum dipilih</span></div><div><label>Tahun pajak</label><select id="workYear"><option>2026</option><option>2027</option><option>2025</option></select></div></div>
- <div id="adminDusunPicker" class="hidden"><label>Pilih dusun yang dikelola</label><select id="activeDusun"><option value="">Pilih dusun</option></select><button id="openDusunBtn">Buka Dusun</button></div>
+ <div id="adminDusunPicker" class="hidden"><label>Pilih dusun yang dikelola</label><select id="activeDusun"><option value="">Pilih dusun</option></select><button type="button" id="openDusunBtn">Buka Dusun</button><div id="openDusunMsg" class="msg hidden"></div></div>
  <div class="row dashboard-stats">
   <div class="item"><div class="muted">Total target pajak</div><h2 id="sumTarget">Rp0</h2></div>
   <div class="item"><div class="muted">Sudah lunas</div><h2 id="sumPaid">Rp0</h2><small id="pctPaid">0% dari nominal target</small></div>
@@ -349,10 +349,15 @@ async function startWork(){
  }
 }
 async function openSelectedDusun(){
- const id=$("activeDusun").value;if(!id)throw Error("Pilih dusun terlebih dahulu.");
- const d=dusunRows.find(x=>x.id===id);if(d&&!d.owner_id)throw Error("Dusun ini belum memiliki Kepala Dusun/pengelola aktif. Buat atau setujui akun Kepala Dusun terlebih dahulu.");
- activeDusunId=id;$("workDusunLabel").textContent=d?.nama||"Dusun terpilih";
- await loadWpRTOptions();await loadWorkData();
+ const id=$("activeDusun").value;
+ if(!id)throw Error("Pilih dusun terlebih dahulu.");
+ const d=dusunRows.find(x=>x.id===id);
+ activeDusunId=id;
+ $("workDusunLabel").textContent=d?.nama||"Dusun terpilih";
+ $("wpList").textContent="Memuat data wajib pajak...";
+ $("sumTarget").textContent="Memuat...";$("sumPaid").textContent="Memuat...";$("sumUnpaid").textContent="Memuat...";$("sumCount").textContent="...";
+ await loadWpRTOptions();
+ await loadWorkData();
 }
 async function loadWorkData(){
  if(!activeDusunId)return;
@@ -461,7 +466,13 @@ async function deleteWp(w){
  if(!confirm("Hapus data wajib pajak "+w.nama+"? Tindakan ini tidak dapat dibatalkan."))return;
  const {error}=await db.from("wajib_pajak").delete().eq("id",w.id);if(error)throw error;await loadWorkData();
 }
-$("openDusunBtn").onclick=()=>openSelectedDusun().catch(e=>alert(e.message));
+$("openDusunBtn").onclick=async()=>{
+ const btn=$("openDusunBtn");btn.disabled=true;btn.textContent="Memuat dusun...";
+ clearMsg("openDusunMsg");
+ try{await openSelectedDusun();msg("openDusunMsg","Dusun berhasil dibuka.",true);}
+ catch(e){msg("openDusunMsg","Gagal membuka dusun: "+(e?.message||String(e)));}
+ finally{btn.disabled=false;btn.textContent="Buka Dusun";}
+};
 $("workYear").onchange=()=>loadWorkData().catch(e=>alert(e.message));
 $("wpSearch").oninput=()=>{currentWpPage=1;renderWp();};$("wpFilter").onchange=()=>{currentWpPage=1;renderWp();};$("wpRTFilter").oninput=()=>{currentWpPage=1;renderWp();};$("wpPageSize").onchange=()=>{currentWpPage=1;renderWp();};$("wpPagePrev").onclick=()=>{currentWpPage--;renderWp();};$("wpPageNext").onclick=()=>{currentWpPage++;renderWp();};$("wpSelectAllBtn").onclick=()=>{if(filteredWpRows.every(w=>selectedWpIds.has(w.id)))filteredWpRows.forEach(w=>selectedWpIds.delete(w.id));else filteredWpRows.forEach(w=>selectedWpIds.add(w.id));renderWp();};$("wpShareBtn").onclick=()=>{try{shareSelectedWp();}catch(e){alert(e.message);}};$("wpPrintSelectedBtn").onclick=()=>{try{printSelectedWp();}catch(e){alert(e.message);}};$("wpPrintReceiptsBtn").onclick=()=>{try{printSelectedReceipts();}catch(e){alert(e.message);}};$("wpExportSelectedJpgBtn").onclick=()=>exportSelectedJpg().catch(e=>alert(e.message));$("exportReportJpgBtn").onclick=()=>exportReportJpg().catch(e=>alert(e.message));
 $("addWpBtn").onclick=()=>addWp().catch(e=>msg("wpMsg",e.message));
