@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#14532d">
-<title>PBB SEWAN 6.0 — Pengembangan</title>
+<title>PBB MENOREH 6.0 — Pengembangan</title>
 <style>
 :root{--g:#14532d;--g2:#166534;--bg:#f3f7f4;--line:#dbe5dd;--ink:#17231b;--muted:#64748b;--red:#b91c1c}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px Arial,sans-serif}
@@ -20,12 +20,12 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 </style>
 </head>
 <body>
-<header><h1>PBB SEWAN 6.0</h1><p>Pengelolaan PBB multi-dusun • Admin Utama dan Kepala Dusun</p></header>
+<header><h1>PBB MENOREH 6.0</h1><p>Pengelolaan PBB multi-dusun • Admin Utama dan Kepala Dusun</p></header>
 <main>
 <div class="notice"><b>Versi pengembangan.</b> Aplikasi 5.1 tetap menjadi aplikasi utama. Halaman ini sedang diuji dan belum menggantikan 5.1.</div>
 
 <section id="connectCard" class="card">
-<h2>Hubungkan ke PBB SEWAN</h2>
+<h2>Hubungkan ke PBB MENOREH</h2>
 <p class="muted">Konfigurasi koneksi Supabase untuk pengujian. Kunci yang digunakan adalah publishable key, bukan service-role key.</p>
 <label>Supabase Project URL</label><input id="sbUrl" type="url" value="https://jikrxatgnqudfskswbae.supabase.co">
 <label>Supabase Publishable Key</label><input id="sbKey" type="password" autocomplete="off" value="sb_publishable_VT3Z4P3_26J5llAOr7Bo1A_-PFJNthn">
@@ -355,7 +355,7 @@ function updateWpSelectionInfo(){
 function shareSelectedWp(){
  const rows=wpRows.filter(w=>selectedWpIds.has(w.id));if(!rows.length)throw Error("Pilih minimal satu wajib pajak.");
  const lines=rows.slice(0,45).map(w=>{const p=paymentRows.find(x=>x.wajib_pajak_id===w.id);return "- "+w.nama+" | NOP "+w.nop+" | RT "+(w.rt||"-")+" | "+(p?.status||"Belum Lunas")+" | "+rupiah(w.nominal_pajak);});
- const textMsg="Rekap PBB SEWAN\nDusun: "+$("workDusunLabel").textContent+"\nTahun: "+$("workYear").value+"\n"+lines.join("\n")+(rows.length>45?"\n... dan "+(rows.length-45)+" data lainnya.":"")+"\n\nTerima Kasih";
+ const textMsg="Rekap PBB MENOREH\nDusun: "+$("workDusunLabel").textContent+"\nTahun: "+$("workYear").value+"\n"+lines.join("\n")+(rows.length>45?"\n... dan "+(rows.length-45)+" data lainnya.":"")+"\n\nTerima Kasih";
  window.open("https://wa.me/?text="+encodeURIComponent(textMsg),"_blank");
 }
 function printSelectedWp(){
@@ -500,7 +500,7 @@ async function exportRowsJpg(rows,title,filename){
   const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
  }finally{wrap.remove();}
 }
-function exportReportJpg(){return exportRowsJpg(reportRows,"LAPORAN PBB SEWAN","laporan-pbb-"+$("workYear").value+".jpg");}
+function exportReportJpg(){return exportRowsJpg(reportRows,"LAPORAN PBB MENOREH","laporan-pbb-"+$("workYear").value+".jpg");}
 function exportSelectedJpg(){
  const rows=wpRows.filter(w=>selectedWpIds.has(w.id)).map(w=>{const p=paymentRows.find(x=>x.wajib_pajak_id===w.id)||{};return {nop:w.nop,nama:w.nama,rt:w.rt,status_pembayaran:p.status||"Belum Lunas",target_pajak:w.nominal_pajak,jumlah_bayar:p.jumlah_bayar,};});
  return exportRowsJpg(rows,"DAFTAR PBB TERPILIH","pbb-terpilih-"+$("workYear").value+".jpg");
