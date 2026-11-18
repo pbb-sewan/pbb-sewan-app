@@ -437,6 +437,7 @@ async function editWp(w){
  if(!Number.isFinite(nilaiNominal)||nilaiNominal<0)throw Error("Nominal pajak harus berupa angka 0 atau lebih.");
  if(!Number.isFinite(nilaiLuas)||nilaiLuas<0)throw Error("Luas tanah harus berupa angka 0 atau lebih.");
  if(!nama.trim()||!nop.trim()||!rt.trim())throw Error("Nama, NOP, dan RT wajib diisi.");
+ const allowedRT=[...$("wpRT").options].map(o=>o.value);if(!allowedRT.includes(rt.trim()))throw Error("RT tidak termasuk wilayah resmi yang ditugaskan pada akun ini.");
  const {error}=await db.from("wajib_pajak").update({nama:nama.trim(),nop:nop.trim(),nopd:nopd.trim()||null,pemilik_sekarang:pemilik.trim()||null,nominal_pajak:nilaiNominal,rt:rt.trim(),luas_tanah:nilaiLuas,letak:letak.trim()||null,catatan:catatan.trim()||null,last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);if(error)throw error;await loadWorkData();
 }
 async function deleteWp(w){
