@@ -381,7 +381,7 @@ async function addWp(){
  await loadWorkData();msg("wpMsg","Wajib pajak berhasil ditambahkan.",true);
 }
 
-async async function compressEvidence(file){
+async function compressEvidence(file){
  if(typeof createImageBitmap!=="function")return file;
  let bitmap;
  try{
