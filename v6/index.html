@@ -133,11 +133,14 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <hr><h3>Catatan dusun</h3>
 <label>Judul catatan</label><input id="noteTitle"><label>Isi catatan</label><textarea id="noteBody"></textarea>
 <button id="addNoteBtn">Simpan Catatan</button><div id="notesList"></div>
-<hr><h3>Backup dan restore</h3>
-<p class="muted">Backup berisi data PBB dusun. Simpan file di tempat aman. Restore dapat mengganti data yang ada sesuai mekanisme database.</p>
+<div id="backupSection">
+<hr><h3>Backup dan restore (Admin Utama)</h3>
+<p class="muted">Backup memuat data wajib pajak, pembayaran, catatan, dan register setoran. File foto tidak ikut tersalin; yang disimpan hanya alamat file fotonya.</p>
+<p class="muted">Restore menggabungkan atau memperbarui data yang cocok berdasarkan NOP dan tahun. Data yang tidak ada di file backup tidak dihapus. Fitur ini hanya tersedia untuk Admin Utama.</p>
 <button id="backupBtn" class="secondary">Unduh Backup JSON</button>
 <label>Pilih file backup JSON untuk restore</label><input id="restoreFile" type="file" accept="application/json">
-<button id="restoreBtn" class="danger">Pulihkan Backup</button><div id="backupMsg" class="msg hidden"></div>
+<button id="restoreBtn" class="danger">Gabungkan Data dari Backup</button><div id="backupMsg" class="msg hidden"></div>
+</div>
 
 </section>
 </main>
@@ -263,6 +266,7 @@ const rupiah=v=>"Rp"+Number(v||0).toLocaleString("id-ID");
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function startWork(){
  show("workCard",true);
+ show("backupSection",role==="admin_utama");
  if(role==="admin_utama"){
   show("adminDusunPicker",true);
   const sel=$("activeDusun");sel.innerHTML='<option value="">Pilih dusun</option>';
@@ -499,9 +503,10 @@ async function downloadBackup(){
 }
 async function restoreBackup(){
  const file=$("restoreFile").files[0];if(!file)throw Error("Pilih file backup terlebih dahulu.");
- if(!confirm("PERINGATAN: Pulihkan backup ke dusun aktif? Pastikan file benar. Lanjutkan?"))return;
+ if(role!=="admin_utama")throw Error("Hanya Admin Utama yang boleh memulihkan backup.");
+ if(!confirm("PERINGATAN: Data yang cocok akan ditambahkan atau diperbarui. Data lain tidak dihapus. Pastikan dusun dan file benar. Lanjutkan?"))return;
  const raw=JSON.parse(await file.text());const {data,error}=await db.rpc("pbb_restore_dusun_data",{p_dusun_id:activeDusunId,p_backup:raw});if(error)throw error;
- await loadWorkData();await loadReport();await loadNotes();msg("backupMsg","Permintaan restore selesai: "+JSON.stringify(data),true);
+ await loadWorkData();await loadReport();await loadNotes();msg("backupMsg","Penggabungan backup selesai: "+JSON.stringify(data)+". Data yang tidak ada di backup tidak dihapus.",true);
 }
 $("loadReportBtn").onclick=()=>loadReport().catch(e=>alert(e.message));
 $("reportFilter").onchange=()=>loadReport().catch(e=>alert(e.message));
