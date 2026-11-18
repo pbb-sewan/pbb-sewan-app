@@ -76,12 +76,12 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <label>Email akun</label><input id="createEmail" type="email">
 <label>Kata sandi sementara</label><input id="createPassword" type="password">
 <label>Dusun</label><select id="createDusunSelect"><option value="">Pilih dusun</option></select>
-<label>Wilayah RT (pisahkan koma)</label><input id="createRT" placeholder="RT 01, RT 02">
+<label>Wilayah RT (hanya RT resmi dusun ini)</label><div id="createRTOptions" class="item muted">Pilih dusun terlebih dahulu.</div>
 <button id="createAccountBtn">Buat Akun Kepala Dusun</button><div id="createAccountMsg" class="msg hidden"></div>
 <hr><h3>Atur wilayah RT Kepala Dusun</h3>
 <label>Dusun</label><select id="rtManageDusun"><option value="">Pilih dusun</option></select>
 <label>Akun Kepala Dusun</label><select id="rtManageMember"><option value="">Pilih akun</option></select>
-<label>Tambah RT</label><input id="rtManageValue" placeholder="RT 03">
+<label>Tambah RT resmi</label><select id="rtManageValue"><option value="">Pilih RT yang belum ditugaskan</option></select>
 <button id="rtManageAddBtn">Tambahkan RT</button>
 <div id="rtManageList" class="muted"></div><div id="rtManageMsg" class="msg hidden"></div>
 </section>
@@ -145,6 +145,9 @@ function msg(id,text,ok=false){const el=$(id);el.textContent=text;el.className="
 function clearMsg(id){$(id).className="msg hidden";$(id).textContent="";}
 function setBusy(id,on,label){const b=$(id);b.disabled=on;if(label)b.textContent=on?"Memproses...":label;}
 function rtList(v){return [...new Set(String(v||"").split(",").map(x=>x.trim()).filter(Boolean))];}
+async function officialRTs(dusunId){if(!dusunId)return [];const {data,error}=await db.from("pbb_dusun_rt_master").select("rt").eq("dusun_id",dusunId).order("rt");if(error)throw error;return (data||[]).map(x=>x.rt);}
+async function loadCreateRTOptions(){const dusunId=$("createDusunSelect").value,host=$("createRTOptions");host.innerHTML="";if(!dusunId){host.textContent="Pilih dusun terlebih dahulu.";return;}const rts=await officialRTs(dusunId);if(!rts.length){host.textContent="Belum ada RT resmi untuk dusun ini.";return;}rts.forEach(rt=>{const label=document.createElement("label");label.style.cssText="display:flex;align-items:center;gap:8px;font-weight:normal;margin:7px 0";const cb=document.createElement("input");cb.type="checkbox";cb.value=rt;cb.className="create-rt-check";cb.style.width="auto";label.append(cb,document.createTextNode("RT "+rt));host.append(label);});}
+async function loadManageRTOptions(){const dusunId=$("rtManageDusun").value,sel=$("rtManageValue");sel.innerHTML='<option value="">Pilih RT yang belum ditugaskan</option>';if(!dusunId)return;const [all,assigned]=await Promise.all([officialRTs(dusunId),db.from("pbb_dusun_rt").select("rt").eq("dusun_id",dusunId)]);if(assigned.error)throw assigned.error;const used=new Set((assigned.data||[]).map(x=>x.rt));all.filter(rt=>!used.has(rt)).forEach(rt=>{const o=document.createElement("option");o.value=rt;o.textContent="RT "+rt;sel.append(o);});}
 function resetPanels(){["authCard","changePasswordCard","applyCard","adminCard","kadusCard"].forEach(id=>show(id,false));}
 async function connect(){
  const url=$("sbUrl").value.trim(),key=$("sbKey").value.trim();
@@ -176,6 +179,7 @@ async function loadAdminRTMembers(){
 }
 async function renderAdminRTMembers(){
  const dusunId=$("rtManageDusun").value;
+ await loadManageRTOptions();
  const members=adminMemberRows.filter(m=>m.dusun_id===dusunId);
  const sel=$("rtManageMember");sel.innerHTML='<option value="">Pilih akun Kepala Dusun</option>';
  members.forEach(m=>{const o=document.createElement("option");o.value=m.user_id;o.textContent=m.user_id.slice(0,8)+"… ("+(m.is_active?"aktif":"nonaktif")+")";sel.append(o);});
@@ -197,7 +201,7 @@ async function loadAdminRTList(){
  data.forEach(x=>{const row=document.createElement("div");row.className="item";const label=document.createElement("span");label.textContent=x.rt+(x.is_active?"":" (nonaktif)");const del=document.createElement("button");del.className="danger";del.textContent="Hapus";del.onclick=async()=>{if(!confirm("Hapus penugasan "+x.rt+"?"))return;const {error}=await db.from("pbb_dusun_rt").delete().eq("id",x.id);if(error)alert(error.message);else loadAdminRTList().catch(e=>alert(e.message));};row.append(label,del);host.append(row);});
 }
 async function addAdminRT(){
- const dusunId=$("rtManageDusun").value,userId=$("rtManageMember").value,rt=$("rtManageValue").value.trim();
+ const dusunId=$("rtManageDusun").value,userId=$("rtManageMember").value,rt=$("rtManageValue").value;
  if(!dusunId||!userId||!rt)throw Error("Dusun, akun, dan RT wajib dipilih/diisi.");
  const {error}=await db.from("pbb_dusun_rt").insert({dusun_id:dusunId,user_id:userId,rt,is_active:true});if(error)throw error;
  $("rtManageValue").value="";await loadAdminRTList();msg("rtManageMsg","Wilayah RT berhasil ditambahkan.",true);
@@ -260,7 +264,8 @@ $("savePasswordBtn").onclick=async()=>{setBusy("savePasswordBtn",true,"Simpan Ka
 $("applyBtn").onclick=async()=>{setBusy("applyBtn",true,"Kirim Permohonan");try{const nama=$("applyName").value.trim(),dusun=$("applyDusun").value.trim(),rts=rtList($("applyRT").value);if(rts.length===0)throw Error("Isi minimal satu RT.");const {data,error}=await db.rpc("pbb_submit_kadus_application",{p_nama_lengkap:nama,p_nama_dusun:dusun,p_rt:rts});if(error)throw error;msg("applyMsg","Permohonan terkirim dan menunggu persetujuan Admin Utama.",true);}catch(e){msg("applyMsg",e.message);}finally{setBusy("applyBtn",false,"Kirim Permohonan");}};
 $("refreshAdminBtn").onclick=()=>loadAdmin().catch(e=>alert(e.message));
 $("createDusunBtn").onclick=async()=>{setBusy("createDusunBtn",true,"Buat Dusun");try{const nama=$("newDusunName").value.trim();const {error}=await db.rpc("pbb_create_dusun",{p_nama:nama});if(error)throw error;$("newDusunName").value="";msg("dusunMsg","Dusun berhasil dibuat. Pilih dusun tersebut saat membuat akun Kepala Dusun.",true);await loadAdmin();}catch(e){msg("dusunMsg",e.message);}finally{setBusy("createDusunBtn",false,"Buat Dusun");}};
-$("createAccountBtn").onclick=async()=>{setBusy("createAccountBtn",true,"Buat Akun Kepala Dusun");try{const rts=rtList($("createRT").value);if(!rts.length)throw Error("Masukkan minimal satu RT.");const {data:s}=await db.auth.getSession();const token=s.session?.access_token;if(!token)throw Error("Sesi login tidak ditemukan.");const res=await fetch("https://jikrxatgnqudfskswbae.supabase.co/functions/v1/create-kadus-account",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":$("sbKey").value.trim()},body:JSON.stringify({nama:$("createNama").value.trim(),email:$("createEmail").value.trim(),password:$("createPassword").value,dusun_id:$("createDusunSelect").value,rt:rts})});const out=await res.json();if(!res.ok)throw Error(out.error||"Gagal membuat akun.");msg("createAccountMsg","Akun Kepala Dusun berhasil dibuat untuk "+out.dusun+". Pengguna wajib mengganti kata sandi saat login pertama.",true);$("createNama").value=$("createEmail").value=$("createPassword").value=$("createRT").value="";await loadAdmin();}catch(e){msg("createAccountMsg",e.message);}finally{setBusy("createAccountBtn",false,"Buat Akun Kepala Dusun");}};
+$("createDusunSelect").onchange=()=>loadCreateRTOptions().catch(e=>msg("createAccountMsg",e.message));
+$("createAccountBtn").onclick=async()=>{setBusy("createAccountBtn",true,"Buat Akun Kepala Dusun");try{const rts=[...document.querySelectorAll(".create-rt-check:checked")].map(x=>x.value);if(!rts.length)throw Error("Pilih minimal satu RT resmi.");const {data:s}=await db.auth.getSession();const token=s.session?.access_token;if(!token)throw Error("Sesi login tidak ditemukan.");const res=await fetch("https://jikrxatgnqudfskswbae.supabase.co/functions/v1/create-kadus-account",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":$("sbKey").value.trim()},body:JSON.stringify({nama:$("createNama").value.trim(),email:$("createEmail").value.trim(),password:$("createPassword").value,dusun_id:$("createDusunSelect").value,rt:rts})});const out=await res.json();if(!res.ok)throw Error(out.error||"Gagal membuat akun.");msg("createAccountMsg","Akun Kepala Dusun berhasil dibuat untuk "+out.dusun+". Pengguna wajib mengganti kata sandi saat login pertama.",true);$("createNama").value=$("createEmail").value=$("createPassword").value="";$("createRTOptions").innerHTML="Pilih dusun terlebih dahulu.";await loadAdmin();}catch(e){msg("createAccountMsg",e.message);}finally{setBusy("createAccountBtn",false,"Buat Akun Kepala Dusun");}};
 async function logout(){await db.auth.signOut();session=null;user=null;role=null;resetPanels();show("authCard",true);}
 $("logoutAdminBtn").onclick=logout;$("logoutKadusBtn").onclick=logout;
 
