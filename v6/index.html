@@ -107,7 +107,6 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <label>Pemilik sekarang</label><input id="wpPemilik">
  <div class="row"><div><label>RT (wilayah resmi)</label><select id="wpRT"><option value="">Pilih RT</option></select></div><div><label>Luas tanah (m²)</label><input id="wpLuas" type="number" min="0" step="0.01"></div></div>
  <div class="row"><div><label>Nominal pajak (Rp)</label><input id="wpNominal" type="number" min="0"></div><div><label>Letak / alamat</label><input id="wpLetak"></div></div>
- <label>Catatan</label><textarea id="wpCatatan"></textarea>
  <button id="addWpBtn">Simpan Wajib Pajak</button><div id="wpMsg" class="msg hidden"></div>
  <hr><h3>Daftar wajib pajak</h3>
  <div class="row"><div><label>Cari nama / nama sekarang / NOP</label><input id="wpSearch" placeholder="Ketik nama, nama sekarang, atau NOP"></div><div><label>Filter pembayaran</label><select id="wpFilter"><option value="all">Semua</option><option value="Belum Lunas">Belum lunas</option><option value="Lunas">Lunas</option></select></div></div>
@@ -306,7 +305,7 @@ async function loadWorkData(){
  if(prepError)throw prepError;
  const [dash,wp,pay]=await Promise.all([
   db.from("pbb_dashboard_ringkasan").select("*").eq("dusun_id",activeDusunId).eq("tahun",year).maybeSingle(),
-  db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,catatan,foto_bukti,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
+  db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,foto_bukti,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
   db.from("pembayaran_pbb").select("id,wajib_pajak_id,tahun,status,tanggal_bayar,jumlah_bayar,metode_bayar,status_setoran,petugas_penerima,last_device,updated_at").eq("dusun_id",activeDusunId).eq("tahun",year)
  ]);
  if(dash.error)throw dash.error;if(wp.error)throw wp.error;if(pay.error)throw pay.error;
@@ -370,10 +369,10 @@ function printSelectedWp(){
 async function addWp(){
  const nop=$("wpNop").value.trim(),nama=$("wpNama").value.trim(),rt=$("wpRT").value.trim();
  if(!nop||!nama||!rt)throw Error("NOP, nama, dan RT wajib diisi.");
- const payload={dusun_id:activeDusunId,nop,nama,nopd:$("wpNopd").value.trim()||null,pemilik_sekarang:$("wpPemilik").value.trim()||null,rt,luas_tanah:Number($("wpLuas").value||0),nominal_pajak:Number($("wpNominal").value||0),letak:$("wpLetak").value.trim()||null,catatan:$("wpCatatan").value.trim()||null,last_device:navigator.userAgent.slice(0,180)};
+ const payload={dusun_id:activeDusunId,nop,nama,nopd:$("wpNopd").value.trim()||null,pemilik_sekarang:$("wpPemilik").value.trim()||null,rt,luas_tanah:Number($("wpLuas").value||0),nominal_pajak:Number($("wpNominal").value||0),letak:$("wpLetak").value.trim()||null,last_device:navigator.userAgent.slice(0,180)};
  const {error}=await db.from("wajib_pajak").insert(payload);if(error)throw error;
  const {error:yearError}=await db.rpc("pbb_prepare_dusun_year",{p_dusun_id:activeDusunId,p_tahun:Number($("workYear").value)});if(yearError)throw yearError;
- ["wpNop","wpNopd","wpNama","wpPemilik","wpRT","wpLuas","wpNominal","wpLetak","wpCatatan"].forEach(id=>$(id).value="");
+ ["wpNop","wpNopd","wpNama","wpPemilik","wpRT","wpLuas","wpNominal","wpLetak"].forEach(id=>$(id).value="");
  await loadWorkData();msg("wpMsg","Wajib pajak berhasil ditambahkan.",true);
 }
 
@@ -436,13 +435,12 @@ async function editWp(w){
  const pemilik=prompt("Pemilik sekarang:",w.pemilik_sekarang||"");if(pemilik===null)return;
  const luas=prompt("Luas tanah (m²):",String(w.luas_tanah??0));if(luas===null)return;
  const letak=prompt("Letak / alamat:",w.letak||"");if(letak===null)return;
- const catatan=prompt("Catatan wajib pajak:",w.catatan||"");if(catatan===null)return;
  const nilaiNominal=Number(nominal),nilaiLuas=Number(luas);
  if(!Number.isFinite(nilaiNominal)||nilaiNominal<0)throw Error("Nominal pajak harus berupa angka 0 atau lebih.");
  if(!Number.isFinite(nilaiLuas)||nilaiLuas<0)throw Error("Luas tanah harus berupa angka 0 atau lebih.");
  if(!nama.trim()||!nop.trim()||!rt.trim())throw Error("Nama, NOP, dan RT wajib diisi.");
  const allowedRT=[...$("wpRT").options].map(o=>o.value);if(!allowedRT.includes(rt.trim()))throw Error("RT tidak termasuk wilayah resmi yang ditugaskan pada akun ini.");
- const {error}=await db.from("wajib_pajak").update({nama:nama.trim(),nop:nop.trim(),nopd:nopd.trim()||null,pemilik_sekarang:pemilik.trim()||null,nominal_pajak:nilaiNominal,rt:rt.trim(),luas_tanah:nilaiLuas,letak:letak.trim()||null,catatan:catatan.trim()||null,last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);if(error)throw error;await loadWorkData();
+ const {error}=await db.from("wajib_pajak").update({nama:nama.trim(),nop:nop.trim(),nopd:nopd.trim()||null,pemilik_sekarang:pemilik.trim()||null,nominal_pajak:nilaiNominal,rt:rt.trim(),luas_tanah:nilaiLuas,letak:letak.trim()||null,last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);if(error)throw error;await loadWorkData();
 }
 async function deleteWp(w){
  if(!confirm("Hapus data wajib pajak "+w.nama+"? Tindakan ini tidak dapat dibatalkan."))return;
