@@ -125,7 +125,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
 <div id="backupSection">
 <hr><h3>Backup dan restore (Admin Utama)</h3>
-<p class="muted">Backup memuat data wajib pajak, pembayaran, waktu pencatatan, dan informasi perangkat. File foto tidak ikut tersalin; yang disimpan hanya alamat file fotonya.</p>
+<p class="muted">Backup memuat data wajib pajak, pembayaran, waktu pencatatan, dan informasi perangkat.</p>
 <p class="muted">Restore menggabungkan atau memperbarui data yang cocok berdasarkan NOP dan tahun. Data yang tidak ada di file backup tidak dihapus. Fitur ini hanya tersedia untuk Admin Utama.</p>
 <button id="backupBtn" class="secondary">Unduh Backup JSON</button>
 <label>Pilih file backup JSON untuk restore</label><input id="restoreFile" type="file" accept="application/json">
@@ -305,7 +305,7 @@ async function loadWorkData(){
  if(prepError)throw prepError;
  const [dash,wp,pay]=await Promise.all([
   db.from("pbb_dashboard_ringkasan").select("*").eq("dusun_id",activeDusunId).eq("tahun",year).maybeSingle(),
-  db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,foto_bukti,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
+  db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
   db.from("pembayaran_pbb").select("id,wajib_pajak_id,tahun,status,tanggal_bayar,jumlah_bayar,metode_bayar,status_setoran,petugas_penerima,last_device,updated_at").eq("dusun_id",activeDusunId).eq("tahun",year)
  ]);
  if(dash.error)throw dash.error;if(wp.error)throw wp.error;if(pay.error)throw pay.error;
@@ -341,9 +341,7 @@ function renderWp(){
   const payBtn=document.createElement("button");payBtn.textContent=p?.status==="Lunas"?"Batalkan Lunas":"Catat Lunas";payBtn.onclick=()=>togglePayment(w,p);
   const editBtn=document.createElement("button");editBtn.textContent="Edit";editBtn.className="secondary";editBtn.onclick=()=>editWp(w);
   const delBtn=document.createElement("button");delBtn.textContent="Hapus";delBtn.className="danger";delBtn.onclick=()=>deleteWp(w);
-  const photoBtn=document.createElement("button");photoBtn.textContent="Unggah Foto Bukti";photoBtn.className="secondary";photoBtn.onclick=()=>chooseEvidence(w);
-  if(w.foto_bukti){const viewBtn=document.createElement("button");viewBtn.textContent="Lihat Foto";viewBtn.className="secondary";viewBtn.onclick=()=>viewEvidence(w).catch(e=>alert(e.message));actions.append(viewBtn);}
-  actions.append(payBtn,editBtn,delBtn,photoBtn);box.append(top,detail,actions);host.append(box);
+  actions.append(payBtn,editBtn,delBtn);box.append(top,detail,actions);host.append(box);
  });
  $("wpPageInfo").textContent="Halaman "+currentWpPage+" dari "+pages+" • "+filteredWpRows.length+" data";
  $("wpPagePrev").disabled=currentWpPage<=1;$("wpPageNext").disabled=currentWpPage>=pages;
@@ -376,45 +374,6 @@ async function addWp(){
  await loadWorkData();msg("wpMsg","Wajib pajak berhasil ditambahkan.",true);
 }
 
-async function compressEvidence(file){
- if(typeof createImageBitmap!=="function")return file;
- let bitmap;
- try{
-  bitmap=await createImageBitmap(file);
-  const scale=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));
-  const width=Math.max(1,Math.round(bitmap.width*scale)),height=Math.max(1,Math.round(bitmap.height*scale));
-  const canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;
-  const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,width,height);ctx.drawImage(bitmap,0,0,width,height);
-  const type=file.type==="image/png"?"image/png":"image/jpeg";
-  const blob=await new Promise(resolve=>canvas.toBlob(resolve,type,type==="image/jpeg"?0.82:undefined));
-  if(!blob||blob.size>=file.size)return file;
-  const ext=type==="image/png"?"png":"jpg";
-  return new File([blob],file.name.replace(/\.[^.]+$/,"")+"-compressed."+ext,{type});
- }catch(e){return file;}finally{if(bitmap?.close)bitmap.close();}
-}
-function chooseEvidence(w){
- const picker=document.createElement("input");picker.type="file";picker.accept="image/jpeg,image/png,image/webp";
- picker.onchange=async()=>{let uploadedPath=null;try{
-  const file=picker.files?.[0];if(!file)return;
-  if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("Format foto harus JPG, PNG, atau WebP.");
-  if(file.size>10*1024*1024)throw new Error("Ukuran foto asli maksimal 10 MB.");
-  const uploadFile=await compressEvidence(file);
-  if(uploadFile.size>5*1024*1024)throw new Error("Foto masih lebih dari 5 MB setelah kompresi. Pilih foto yang lebih kecil.");
-  const ext=uploadFile.type==="image/png"?"png":uploadFile.type==="image/webp"?"webp":"jpg";
-  const path=activeDusunId+"/"+w.id+"/"+Date.now()+"."+ext;
-  const {error:uploadError}=await db.storage.from("pbb-bukti").upload(path,uploadFile,{contentType:uploadFile.type,upsert:false});if(uploadError)throw uploadError;
-  uploadedPath=path;
-  const {error:updateError}=await db.from("wajib_pajak").update({foto_bukti:path,last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);
-  if(updateError){await db.storage.from("pbb-bukti").remove([path]);throw updateError;}
-  await loadWorkData();alert("Foto bukti berhasil disimpan.");
- }catch(e){alert(e.message||String(e));}};
- picker.click();
-}
-async function viewEvidence(w){
- if(!w.foto_bukti)throw Error("Belum ada foto bukti.");
- const {data,error}=await db.storage.from("pbb-bukti").createSignedUrl(w.foto_bukti,300);if(error)throw error;
- window.open(data.signedUrl,"_blank","noopener");
-}
 async function togglePayment(w,p){
  if(!p)throw Error("Data pembayaran tahun ini belum terbentuk. Muat ulang dahulu.");
  if(p.status==="Lunas"){
