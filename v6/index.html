@@ -200,9 +200,15 @@ async function loadAdminRTList(){
  const dusunId=$("rtManageDusun").value,userId=$("rtManageMember").value;
  const host=$("rtManageList");host.innerHTML="";
  if(!dusunId||!userId){host.textContent="Pilih dusun dan akun Kepala Dusun.";return;}
+ const member=adminMemberRows.find(m=>m.dusun_id===dusunId&&m.user_id===userId);
+ if(member){
+  const toggle=document.createElement("button");toggle.className=member.is_active?"danger":"secondary";toggle.textContent=member.is_active?"Nonaktifkan Akun Kepala Dusun":"Aktifkan Akun Kepala Dusun";
+  toggle.onclick=async()=>{if(!confirm((member.is_active?"Nonaktifkan":"Aktifkan")+" akun Kepala Dusun ini?"))return;const {error}=await db.rpc("pbb_admin_set_member_active",{p_dusun_id:dusunId,p_user_id:userId,p_is_active:!member.is_active});if(error)alert(error.message);else{await loadAdminRTMembers();msg("rtManageMsg","Status akun berhasil diperbarui.",true);}};
+  host.append(toggle);
+ }
  const {data,error}=await db.from("pbb_dusun_rt").select("id,rt,is_active").eq("dusun_id",dusunId).eq("user_id",userId).order("rt");
  if(error)throw error;
- if(!data?.length){host.textContent="Belum ada RT yang ditetapkan.";return;}
+ if(!data?.length){const empty=document.createElement("p");empty.textContent="Belum ada RT yang ditetapkan.";host.append(empty);return;}
  data.forEach(x=>{const row=document.createElement("div");row.className="item";const label=document.createElement("span");label.textContent=x.rt+(x.is_active?"":" (nonaktif)");const del=document.createElement("button");del.className="danger";del.textContent="Hapus";del.onclick=async()=>{if(!confirm("Hapus penugasan "+x.rt+"?"))return;const {error}=await db.from("pbb_dusun_rt").delete().eq("id",x.id);if(error)alert(error.message);else loadAdminRTList().catch(e=>alert(e.message));};row.append(label,del);host.append(row);});
 }
 async function addAdminRT(){
