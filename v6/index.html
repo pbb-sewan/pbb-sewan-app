@@ -227,6 +227,10 @@ function resetPanels(){["authCard","changePasswordCard","applyCard","adminCard",
 async function connect(){
  const url=$("sbUrl").value.trim(),key=$("sbKey").value.trim();
  if(!url||!key)throw Error("URL dan publishable key wajib diisi.");
+ // Baca penanda recovery SEBELUM Supabase memproses dan membersihkan hash URL.
+ const initialHashParams=new URLSearchParams(window.location.hash.startsWith("#")?window.location.hash.slice(1):window.location.hash);
+ const initialQueryParams=new URLSearchParams(window.location.search);
+ if(initialHashParams.get("type")==="recovery"||initialQueryParams.get("type")==="recovery")passwordRecoveryMode=true;
  localStorage.setItem("pbb6_url",url);localStorage.setItem("pbb6_key",key);
  db=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  db.auth.onAuthStateChange((event,nextSession)=>{
@@ -237,11 +241,15 @@ async function connect(){
  });
  const {data,error}=await db.auth.getSession();if(error)throw error;
  session=data.session;user=session?.user||null;
- const hashParams=new URLSearchParams(window.location.hash.slice(1));
- const queryParams=new URLSearchParams(window.location.search);
- if(session&&(hashParams.get("type")==="recovery"||queryParams.get("type")==="recovery"))passwordRecoveryMode=true;
+ // Event PASSWORD_RECOVERY juga mengaktifkan mode ini; pertahankan meski hash URL dibersihkan.
  show("connectCard",false);
- if(user)await routeUser();else show("authCard",true);
+ if(user){
+  if(passwordRecoveryMode){resetPanels();show("changePasswordCard",true);}
+  else await routeUser();
+ }else{
+  show("authCard",true);
+  if(passwordRecoveryMode)msg("authMsg","Sesi pemulihan tidak ditemukan. Minta tautan pemulihan password baru lalu buka langsung di browser.",false);
+ }
 }
 async function routeUser(){
  resetPanels();
