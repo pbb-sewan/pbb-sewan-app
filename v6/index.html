@@ -341,7 +341,7 @@ function renderWp(){
   pick.onchange=()=>{if(pick.checked)selectedWpIds.add(w.id);else selectedWpIds.delete(w.id);updateWpSelectionInfo();};
   const top=document.createElement("div");top.innerHTML="<b>"+esc(w.nama)+"</b> <span class='pill'>"+esc(p?.status||"Belum Lunas")+"</span>";
   top.prepend(pick);
-  const detail=document.createElement("p");detail.className="muted";detail.textContent="NOP: "+w.nop+" • RT: "+(w.rt||"-")+" • Target: "+rupiah(w.nominal_pajak)+" • "+(w.pemilik_sekarang||"")+(p?.metode_bayar?" • "+p.metode_bayar:"");
+  const detail=document.createElement("p");detail.className="muted";detail.textContent="NOP: "+w.nop+" • RT: "+(w.rt||"-")+" • Target: "+rupiah(w.nominal_pajak)+" • "+(w.pemilik_sekarang||"")+(p?.metode_bayar?" • "+(p.metode_bayar==="Khanief"?"Tunai":p.metode_bayar):"");
   const actions=document.createElement("div");
   const payBtn=document.createElement("button");payBtn.textContent=p?.status==="Lunas"?"Batalkan Lunas":"Catat Lunas";payBtn.onclick=()=>togglePayment(w,p);
   const editBtn=document.createElement("button");editBtn.textContent="Edit";editBtn.className="secondary";editBtn.onclick=()=>editWp(w);
@@ -489,7 +489,7 @@ async function exportRowsJpg(rows,title,filename){
  const thead=document.createElement("thead"),trh=document.createElement("tr");
  headers.forEach(v=>{const th=document.createElement("th");th.textContent=v;th.style.cssText="border:1px solid #555;padding:8px;background:#eee";trh.append(th);});thead.append(trh);table.append(thead);
  const tbody=document.createElement("tbody");
- rows.forEach((x,i)=>{const tr=document.createElement("tr");[i+1,x.nop,x.nama,x.rt||"-",x.status_pembayaran,rupiah(x.target_pajak),rupiah(x.jumlah_bayar),x.metode_bayar||"-",x.status_setoran||"-"].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"-");td.style.cssText="border:1px solid #777;padding:7px";tr.append(td);});tbody.append(tr);});
+ rows.forEach((x,i)=>{const tr=document.createElement("tr");[i+1,x.nop,x.nama,x.rt||"-",x.status_pembayaran,rupiah(x.target_pajak),rupiah(x.jumlah_bayar),x.metode_bayar==="Khanief"?"Tunai":(x.metode_bayar||"-"),x.status_setoran||"-"].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"-");td.style.cssText="border:1px solid #777;padding:7px";tr.append(td);});tbody.append(tr);});
  table.append(tbody);wrap.append(table);document.body.append(wrap);
  try{
   const canvas=await window.html2canvas(wrap,{scale:2,backgroundColor:"#ffffff",useCORS:false,logging:false});
