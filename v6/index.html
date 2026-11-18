@@ -97,8 +97,8 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <div id="adminDusunPicker" class="hidden"><label>Pilih dusun yang dikelola</label><select id="activeDusun"><option value="">Pilih dusun</option></select><button id="openDusunBtn">Buka Dusun</button></div>
  <div class="row">
   <div class="item"><div class="muted">Total target pajak</div><h2 id="sumTarget">Rp0</h2></div>
-  <div class="item"><div class="muted">Sudah lunas</div><h2 id="sumPaid">Rp0</h2></div>
-  <div class="item"><div class="muted">Belum lunas</div><h2 id="sumUnpaid">Rp0</h2></div>
+  <div class="item"><div class="muted">Sudah lunas</div><h2 id="sumPaid">Rp0</h2><small id="pctPaid">0% dari nominal target</small></div>
+  <div class="item"><div class="muted">Belum lunas</div><h2 id="sumUnpaid">Rp0</h2><small id="pctUnpaid">0% dari nominal target</small></div>
   <div class="item"><div class="muted">Wajib pajak</div><h2 id="sumCount">0</h2></div>
  </div>
  <div class="row"><div class="item"><div class="muted">Masuk bank</div><b id="sumBank">Rp0</b></div><div class="item"><div class="muted">Masih dipegang</div><b id="sumHeld">Rp0</b></div></div>
@@ -116,7 +116,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <div id="wpList" class="muted">Pilih dusun terlebih dahulu.</div>
 <hr><h3>Laporan dan cetak</h3>
 <div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
-<button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button>
+<button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
 <hr><h3>Rekap posisi uang</h3>
 <button id="loadMoneyBtn" class="secondary">Muat Rekap Posisi Uang</button>
@@ -294,6 +294,7 @@ async function loadWorkData(){
  const d=dash.data||{};
  $("sumTarget").textContent=rupiah(d.total_target);$("sumPaid").textContent=rupiah(d.total_lunas);$("sumUnpaid").textContent=rupiah(d.total_belum_lunas);
  $("sumCount").textContent=String(d.jumlah_wajib_pajak||wpRows.length);$("sumBank").textContent=rupiah(d.total_masuk_bank);$("sumHeld").textContent=rupiah(d.total_di_petugas);
+ $("pctPaid").textContent=Number(d.persen_lunas||0).toLocaleString("id-ID",{maximumFractionDigits:2})+"% dari nominal target";$("pctUnpaid").textContent=Number(d.persen_belum_lunas||0).toLocaleString("id-ID",{maximumFractionDigits:2})+"% dari nominal target";
  renderWp();
 }
 function renderWp(){
@@ -381,6 +382,22 @@ $("refreshWpBtn").onclick=()=>loadWorkData().catch(e=>alert(e.message));
 
 let reportRows=[];
 const dateFmt=v=>v?new Date(v).toLocaleDateString("id-ID"):"-";
+
+
+function printOwnerReport(){
+ if(!reportRows.length)throw Error("Tampilkan laporan dahulu.");
+ const groups={};reportRows.forEach(x=>{const key=(x.pemilik_sekarang||"").trim()||"Belum diisi";(groups[key]??=[]).push(x);});
+ const body=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0],"id")).map(([owner,items])=>{
+  const subtotal=items.reduce((s,x)=>s+Number(x.target_pajak||0),0);
+  const paid=items.reduce((s,x)=>s+Number(x.nominal_lunas||0),0);
+  const rows=items.map((x,i)=>"<tr><td>"+(i+1)+"</td><td>"+esc(x.nop)+"</td><td>"+esc(x.nama)+"</td><td>"+esc(x.rt||"-")+"</td><td>"+esc(x.status_pembayaran)+"</td><td>"+rupiah(x.target_pajak)+"</td><td>"+rupiah(x.jumlah_bayar)+"</td></tr>").join("");
+  return "<h3>Pemilik sekarang: "+esc(owner)+"</h3><table><thead><tr><th>No</th><th>NOP</th><th>Nama WP</th><th>RT</th><th>Status</th><th>Target</th><th>Bayar</th></tr></thead><tbody>"+rows+"</tbody><tfoot><tr><th colspan='5'>Subtotal "+items.length+" WP</th><th>"+rupiah(subtotal)+"</th><th>"+rupiah(paid)+"</th></tr></tfoot></table>";
+ }).join("<br>");
+ const w=window.open("","_blank");if(!w)throw Error("Izinkan pop-up untuk mencetak.");
+ w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Rekap PBB per Pemilik</title><style>body{font:12px Arial;padding:18px}h1{text-align:center}h3{margin:24px 0 6px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #777;padding:5px;text-align:left}tfoot th{background:#eee}@media print{h3{break-after:avoid}table{break-inside:avoid}}</style></head><body><h1>REKAP PBB PER PEMILIK</h1><p>"+esc($("workDusunLabel").textContent)+" • Tahun "+esc($("workYear").value)+"</p>"+body+"<script>window.onload=()=>window.print()<\/script></body></html>");
+ w.document.close();
+}
+$("printOwnerReportBtn").onclick=()=>{try{printOwnerReport();}catch(e){alert(e.message);}};
 
 function csvDownload(filename,rows){
  const csv=rows.map(row=>row.map(v=>{const s=String(v??"");return '"'+s.replace(/"/g,'""')+'"';}).join(",")).join("\r\n");
