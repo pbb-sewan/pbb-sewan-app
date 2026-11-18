@@ -469,7 +469,16 @@ async function deleteWp(w){
 $("openDusunBtn").onclick=async()=>{
  const btn=$("openDusunBtn");btn.disabled=true;btn.textContent="Memuat dusun...";
  clearMsg("openDusunMsg");
- try{await openSelectedDusun();msg("openDusunMsg","Terbuka | role: "+role+" | dusun: "+activeDusunId+" | WP terbaca: "+wpRows.length+" | pembayaran terbaca: "+paymentRows.length,true);}
+ try{
+  await openSelectedDusun();
+  const [{data:authData},{data:isAdmin,error:adminErr},{data:canRead,error:readErr}] = await Promise.all([
+   db.auth.getUser(),
+   db.rpc("pbb_is_admin_utama"),
+   db.rpc("pbb_can_access_wp_rt",{p_dusun_id:activeDusunId,p_rt:null})
+  ]);
+  if(adminErr)throw adminErr;if(readErr)throw readErr;
+  msg("openDusunMsg","Terbuka | role: "+role+" | user: "+(authData.user?.id||"NULL")+" | adminDB: "+isAdmin+" | aksesWP: "+canRead+" | dusun: "+activeDusunId+" | WP terbaca: "+wpRows.length+" | pembayaran terbaca: "+paymentRows.length,true);
+ }
  catch(e){msg("openDusunMsg","Gagal membuka dusun: "+(e?.message||String(e)));}
  finally{btn.disabled=false;btn.textContent="Buka Dusun";}
 };
