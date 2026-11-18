@@ -578,12 +578,14 @@ async function loadReport(){
 
 async function loadHistory(){
  if(!activeDusunId)throw Error("Pilih dusun dahulu.");
- const [a,b]=await Promise.all([
+ const [a,b,c,d]=await Promise.all([
   db.from("pbb_riwayat_wajib_pajak").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60),
-  db.from("pbb_riwayat_pembayaran").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60)
+  db.from("pbb_riwayat_pembayaran").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60),
+  db.from("pbb_riwayat_setoran").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60),
+  db.from("pbb_riwayat_catatan").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60)
  ]);
- if(a.error)throw a.error;if(b.error)throw b.error;
- const rows=[...(a.data||[]).map(x=>({...x,jenis:"Data WP"})),...(b.data||[]).map(x=>({...x,jenis:"Pembayaran"}))].sort((x,y)=>new Date(y.dilakukan_pada)-new Date(x.dilakukan_pada)).slice(0,80);
+ if(a.error)throw a.error;if(b.error)throw b.error;if(c.error)throw c.error;if(d.error)throw d.error;
+ const rows=[...(a.data||[]).map(x=>({...x,jenis:"Data WP"})),...(b.data||[]).map(x=>({...x,jenis:"Pembayaran"})),...(c.data||[]).map(x=>({...x,jenis:"Setoran"})),...(d.data||[]).map(x=>({...x,jenis:"Catatan dusun"}))].sort((x,y)=>new Date(y.dilakukan_pada)-new Date(x.dilakukan_pada)).slice(0,100);
  const host=$("historyList");host.innerHTML="";
  if(!rows.length){host.textContent="Belum ada riwayat.";return;}
  rows.forEach(x=>{const el=document.createElement("div");el.className="item";el.textContent=dateFmt(x.dilakukan_pada)+" "+new Date(x.dilakukan_pada).toLocaleTimeString("id-ID")+" • "+x.jenis+" • "+x.aksi+" • "+JSON.stringify(x.data_baru||x.data_lama||{}).slice(0,180);host.append(el);});
