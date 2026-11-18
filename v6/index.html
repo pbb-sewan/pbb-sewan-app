@@ -59,8 +59,8 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <h2>Permohonan Kepala Dusun</h2>
 <p class="muted">Pilih RT yang menjadi wilayah tugas. Permohonan harus disetujui Admin Utama sebelum akun memperoleh akses data.</p>
 <label>Nama lengkap</label><input id="applyName">
-<label>Nama dusun</label><input id="applyDusun">
-<label>Daftar RT (pisahkan dengan koma)</label><input id="applyRT" placeholder="Contoh: RT 01, RT 02, RT 03">
+<label>Dusun</label><select id="applyDusunSelect"><option value="">Pilih dusun resmi</option></select>
+<label>RT yang diajukan (pilih satu atau lebih)</label><div id="applyRTOptions" class="item muted">Pilih dusun terlebih dahulu.</div>
 <button id="applyBtn">Kirim Permohonan</button><div id="applyMsg" class="msg hidden"></div>
 </section>
 
@@ -146,6 +146,9 @@ function clearMsg(id){$(id).className="msg hidden";$(id).textContent="";}
 function setBusy(id,on,label){const b=$(id);b.disabled=on;if(label)b.textContent=on?"Memproses...":label;}
 function rtList(v){return [...new Set(String(v||"").split(",").map(x=>x.trim()).filter(Boolean))];}
 async function officialRTs(dusunId){if(!dusunId)return [];const {data,error}=await db.from("pbb_dusun_rt_master").select("rt").eq("dusun_id",dusunId).order("rt");if(error)throw error;return (data||[]).map(x=>x.rt);}
+let applyOptionRows=[];
+async function loadApplyDusunOptions(){const {data,error}=await db.rpc("pbb_get_kadus_application_options");if(error)throw error;applyOptionRows=data||[];const sel=$("applyDusunSelect");sel.innerHTML='<option value="">Pilih dusun resmi</option>';const seen=new Map();applyOptionRows.forEach(x=>{if(!seen.has(x.dusun_id))seen.set(x.dusun_id,x.nama_dusun);});for(const [id,nama] of seen){const o=document.createElement("option");o.value=id;o.textContent=nama;sel.append(o);}await loadApplyRTOptions();}
+async function loadApplyRTOptions(){const id=$("applyDusunSelect").value,host=$("applyRTOptions");host.innerHTML="";if(!id){host.textContent="Pilih dusun terlebih dahulu.";return;}const rts=applyOptionRows.filter(x=>x.dusun_id===id).map(x=>x.rt);if(!rts.length){host.textContent="Semua RT dusun ini sudah ditugaskan.";return;}rts.forEach(rt=>{const label=document.createElement("label");label.style.cssText="display:flex;align-items:center;gap:8px;font-weight:normal;margin:7px 0";const cb=document.createElement("input");cb.type="checkbox";cb.value=rt;cb.className="apply-rt-check";cb.style.width="auto";label.append(cb,document.createTextNode(rt));host.append(label);});}
 async function loadCreateRTOptions(){const dusunId=$("createDusunSelect").value,host=$("createRTOptions");host.innerHTML="";if(!dusunId){host.textContent="Pilih dusun terlebih dahulu.";return;}const [rts,assigned]=await Promise.all([officialRTs(dusunId),db.from("pbb_dusun_rt").select("rt").eq("dusun_id",dusunId)]);if(assigned.error)throw assigned.error;const used=new Set((assigned.data||[]).map(x=>x.rt));const available=rts.filter(rt=>!used.has(rt));if(!available.length){host.textContent="Semua RT resmi dusun ini sudah ditugaskan.";return;}available.forEach(rt=>{const label=document.createElement("label");label.style.cssText="display:flex;align-items:center;gap:8px;font-weight:normal;margin:7px 0";const cb=document.createElement("input");cb.type="checkbox";cb.value=rt;cb.className="create-rt-check";cb.style.width="auto";label.append(cb,document.createTextNode(rt));host.append(label);});}
 async function loadManageRTOptions(){const dusunId=$("rtManageDusun").value,sel=$("rtManageValue");sel.innerHTML='<option value="">Pilih RT yang belum ditugaskan</option>';if(!dusunId)return;const [all,assigned]=await Promise.all([officialRTs(dusunId),db.from("pbb_dusun_rt").select("rt").eq("dusun_id",dusunId)]);if(assigned.error)throw assigned.error;const used=new Set((assigned.data||[]).map(x=>x.rt));all.filter(rt=>!used.has(rt)).forEach(rt=>{const o=document.createElement("option");o.value=rt;o.textContent=rt;sel.append(o);});}
 function resetPanels(){["authCard","changePasswordCard","applyCard","adminCard","kadusCard"].forEach(id=>show(id,false));}
@@ -166,7 +169,7 @@ async function routeUser(){
  const {data:r,error}=await db.rpc("pbb_get_my_global_role");if(error)throw error;role=r;
  if(role==="admin_utama"){show("adminCard",true);await loadAdmin();}
  else if(role==="admin_dusun"){show("kadusCard",true);await loadKadus();}
- else{show("applyCard",true);$("applyName").value=user.user_metadata?.full_name||"";}
+ else{show("applyCard",true);$("applyName").value=user.user_metadata?.full_name||"";await loadApplyDusunOptions();}
 }
 
 let adminMemberRows=[];
@@ -228,8 +231,8 @@ async function loadAdmin(){
   box.append(title,detail);
   if(x.status==="menunggu"){
    const target=document.createElement("select");
-   const createOpt=document.createElement("option");createOpt.value="";createOpt.textContent="Buat dusun baru: "+x.nama_dusun;target.append(createOpt);
-   dusunRows.forEach(d=>{const opt=document.createElement("option");opt.value=d.id;opt.textContent="Gabungkan ke dusun: "+d.nama;target.append(opt);});
+   if(x.dusun_id){const opt=document.createElement("option");opt.value=x.dusun_id;opt.textContent="Dusun: "+x.nama_dusun;target.append(opt);}
+   else{dusunRows.filter(d=>d.nama.toLowerCase()===String(x.nama_dusun||"").toLowerCase()).forEach(d=>{const opt=document.createElement("option");opt.value=d.id;opt.textContent="Cocokkan dusun: "+d.nama;target.append(opt);});}
    const approve=document.createElement("button");approve.textContent="Setujui";
    approve.onclick=()=>reviewRequest(x.id,true,target.value);
    const reject=document.createElement("button");reject.textContent="Tolak";reject.className="danger";
@@ -262,7 +265,8 @@ $("connectBtn").onclick=async()=>{setBusy("connectBtn",true,"Hubungkan");try{awa
 $("loginBtn").onclick=async()=>{setBusy("loginBtn",true,"Login");clearMsg("authMsg");try{const {data,error}=await db.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error)throw error;session=data.session;user=data.user;await routeUser();}catch(e){msg("authMsg",e.message);}finally{setBusy("loginBtn",false,"Login");}};
 $("signupBtn").onclick=async()=>{setBusy("signupBtn",true,"Buat Akun Kepala Dusun");try{const nama=$("signupName").value.trim();const {data,error}=await db.auth.signUp({email:$("signupEmail").value.trim(),password:$("signupPassword").value,user_metadata:{full_name:nama}});if(error)throw error;if(data.session){session=data.session;user=data.user;await routeUser();msg("applyMsg","Akun berhasil dibuat. Lengkapi permohonan RT.",true);}else{msg("authMsg","Akun dibuat. Jika diminta konfirmasi email, buka email konfirmasi, lalu login kembali untuk mengirim permohonan.",true);}}catch(e){msg("authMsg",e.message);}finally{setBusy("signupBtn",false,"Buat Akun Kepala Dusun");}};
 $("savePasswordBtn").onclick=async()=>{setBusy("savePasswordBtn",true,"Simpan Kata Sandi Baru");try{const a=$("newPassword").value,b=$("newPassword2").value;if(a.length<8)throw Error("Kata sandi minimal 8 karakter.");if(a!==b)throw Error("Ulangan kata sandi tidak sama.");const {error}=await db.auth.updateUser({password:a,data:{must_change_password:false}});if(error)throw error;await routeUser();}catch(e){msg("passwordMsg",e.message);}finally{setBusy("savePasswordBtn",false,"Simpan Kata Sandi Baru");}};
-$("applyBtn").onclick=async()=>{setBusy("applyBtn",true,"Kirim Permohonan");try{const nama=$("applyName").value.trim(),dusun=$("applyDusun").value.trim(),rts=rtList($("applyRT").value);if(rts.length===0)throw Error("Isi minimal satu RT.");const {data,error}=await db.rpc("pbb_submit_kadus_application",{p_nama_lengkap:nama,p_nama_dusun:dusun,p_rt:rts});if(error)throw error;msg("applyMsg","Permohonan terkirim dan menunggu persetujuan Admin Utama.",true);}catch(e){msg("applyMsg",e.message);}finally{setBusy("applyBtn",false,"Kirim Permohonan");}};
+$("applyDusunSelect").onchange=()=>loadApplyRTOptions().catch(e=>msg("applyMsg",e.message));
+$("applyBtn").onclick=async()=>{setBusy("applyBtn",true,"Kirim Permohonan");try{const nama=$("applyName").value.trim(),dusunId=$("applyDusunSelect").value,dusun=applyOptionRows.find(x=>x.dusun_id===dusunId)?.nama_dusun,rts=[...document.querySelectorAll(".apply-rt-check:checked")].map(x=>x.value);if(!dusunId||!dusun)throw Error("Pilih dusun resmi.");if(!rts.length)throw Error("Pilih minimal satu RT resmi.");const {data,error}=await db.rpc("pbb_submit_kadus_application",{p_nama_lengkap:nama,p_nama_dusun:dusun,p_rt:rts});if(error)throw error;msg("applyMsg","Permohonan terkirim dan menunggu persetujuan Admin Utama.",true);}catch(e){msg("applyMsg",e.message);}finally{setBusy("applyBtn",false,"Kirim Permohonan");}};
 $("refreshAdminBtn").onclick=()=>loadAdmin().catch(e=>alert(e.message));
 $("createDusunBtn").onclick=async()=>{setBusy("createDusunBtn",true,"Buat Dusun");try{const nama=$("newDusunName").value.trim();const {error}=await db.rpc("pbb_create_dusun",{p_nama:nama});if(error)throw error;$("newDusunName").value="";msg("dusunMsg","Dusun berhasil dibuat. Pilih dusun tersebut saat membuat akun Kepala Dusun.",true);await loadAdmin();}catch(e){msg("dusunMsg",e.message);}finally{setBusy("createDusunBtn",false,"Buat Dusun");}};
 $("createDusunSelect").onchange=()=>loadCreateRTOptions().catch(e=>msg("createAccountMsg",e.message));
