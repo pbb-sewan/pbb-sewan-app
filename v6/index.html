@@ -223,7 +223,7 @@ async function startWork(){
 }
 async function openSelectedDusun(){
  const id=$("activeDusun").value;if(!id)throw Error("Pilih dusun terlebih dahulu.");
- activeDusunId=id;const d=dusunRows.find(x=>x.id===id);$("workDusunLabel").textContent=d?.nama||"Dusun terpilih";
+ const d=dusunRows.find(x=>x.id===id);if(d&&!d.owner_id)throw Error("Dusun ini belum memiliki Kepala Dusun/pengelola aktif. Buat atau setujui akun Kepala Dusun terlebih dahulu.");\n activeDusunId=id;$("workDusunLabel").textContent=d?.nama||"Dusun terpilih";
  await loadWorkData();
 }
 async function loadWorkData(){
