@@ -4,10 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#14532d">
-<meta http-equiv="refresh" content="0;url=/v6/">
 <title>PBB MENOREH 6.0</title>
 <script>
-  window.location.replace("/v6/");
+  // Teruskan query dan hash, termasuk token pemulihan password Supabase.
+  // Jangan gunakan meta refresh karena dapat membuang parameter recovery.
+  (function () {
+    const target = "/v6/" + window.location.search + window.location.hash;
+    window.location.replace(target);
+  })();
 </script>
 </head>
 <body>
