@@ -14,6 +14,9 @@
 ## Fitur yang tersedia di 6.0
 - Login Supabase Auth, pendaftaran mandiri Kepala Dusun, dan pergantian kata sandi sementara.
 - Admin Utama dapat membuat dusun, membuat akun Kepala Dusun, menyetujui/menolak permohonan, mengaktifkan/nonaktifkan akun, dan mengatur penugasan RT.
+- Master wilayah sudah berisi 16 dusun dan 54 RT desa (RT 01–54 dengan pembagian sesuai daftar resmi, termasuk RT 51 dan 54 pada Jurusawah serta RT 52–53 pada Ngemplak).
+- Saat membuat akun Kepala Dusun, pilihan RT hanya berasal dari master RT dusun yang dipilih. RT yang sudah ditugaskan tidak ditawarkan lagi.
+- Penugasan RT dibatasi agar satu nomor RT hanya dapat ditugaskan kepada satu akun Kepala Dusun. Foreign key database memastikan RT yang ditugaskan benar-benar milik dusun tersebut.
 - Data wajib pajak: tambah, edit seluruh kolom, hapus, pencarian nama/Nama sekarang/NOP/NOPD, filter status dan RT, serta pilihan data.
 - Pembayaran sederhana: Catat Lunas atau Batalkan Lunas. Tidak ada pilihan Tunai/Online atau Setor/Belum Setor.
 - Unggah dan lihat foto bukti pada penyimpanan privat.
@@ -32,10 +35,12 @@
 8. Uji unggah foto bukti dan tombol Lihat Foto.
 9. Uji laporan, filter RT/status, rekap per pemilik, cetak, CSV, JPG, bukti pembayaran, dan WhatsApp.
 10. Unduh backup JSON. Lakukan restore hanya dengan file uji dan pastikan data yang tidak ada di backup tidak terhapus.
-11. Buat akun Kepala Dusun uji atau gunakan pendaftaran mandiri. Setujui permohonan, lalu tetapkan RT yang benar.
-12. Login menggunakan akun Kepala Dusun uji. Pastikan hanya data RT yang ditugaskan yang terlihat dan backup/restore tidak tersedia.
-13. Uji dua akun Kepala Dusun dengan RT berbeda untuk memastikan keduanya tidak dapat saling melihat atau mengubah data.
-14. Uji keluar, login ulang, dan ganti kata sandi sementara.
+11. Di panel Admin Utama, pastikan daftar dusun menampilkan RT resmi sesuai pembagian wilayah.
+12. Buat akun Kepala Dusun uji. Pilih dusun, lalu centang hanya RT yang muncul dari master wilayah. Pastikan RT yang sudah ditugaskan tidak muncul lagi.
+13. Di bagian Atur Wilayah RT, pastikan hanya RT resmi dusun tersebut yang dapat dipilih. Coba pastikan satu RT tidak dapat ditugaskan ke akun lain.
+14. Login menggunakan akun Kepala Dusun uji. Pastikan hanya data RT yang ditugaskan yang terlihat dan backup/restore tidak tersedia.
+15. Uji dua akun Kepala Dusun dengan RT berbeda untuk memastikan keduanya tidak dapat saling melihat atau mengubah data.
+16. Uji keluar, login ulang, dan ganti kata sandi sementara.
 
 ## Status verifikasi yang sudah tercatat
 - Login Admin Utama pada preview berhasil.
@@ -44,7 +49,8 @@
 - Dry-run backup/restore sebelumnya berhasil diproses dalam transaksi yang di-rollback.
 - Pemeriksaan HTML sebelumnya tidak menemukan ID ganda atau referensi ID statis yang hilang.
 - Supabase Storage untuk bukti bersifat privat dan dibatasi tipe gambar serta ukuran file.
-- Pengujian akun Kepala Dusun terpisah, isolasi dua RT, foto, cetak/JPG di Android, serta restore browser nyata tetap harus diselesaikan.
+- Master wilayah 16 dusun/54 RT sudah diverifikasi di Supabase. Penugasan akun Kepala Dusun dan isolasi antar-akun masih harus diuji melalui dua akun nyata.
+- Foto, cetak/JPG di Android, serta restore browser nyata tetap harus diselesaikan.
 - Supabase Free tidak menyediakan perlindungan kata sandi bocor HaveIBeenPwned; fitur ini memerlukan paket Pro atau lebih tinggi. Ini bukan penghalang teknis untuk menjalankan aplikasi.
 
 ## Catatan
