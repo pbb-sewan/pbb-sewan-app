@@ -110,7 +110,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <label>Catatan</label><textarea id="wpCatatan"></textarea>
  <button id="addWpBtn">Simpan Wajib Pajak</button><div id="wpMsg" class="msg hidden"></div>
  <hr><h3>Daftar wajib pajak</h3>
- <div class="row"><div><label>Cari nama / NOP</label><input id="wpSearch" placeholder="Ketik nama atau NOP"></div><div><label>Filter pembayaran</label><select id="wpFilter"><option value="all">Semua</option><option value="Belum Lunas">Belum lunas</option><option value="Lunas">Lunas</option></select></div></div>
+ <div class="row"><div><label>Cari nama / nama sekarang / NOP</label><input id="wpSearch" placeholder="Ketik nama, nama sekarang, atau NOP"></div><div><label>Filter pembayaran</label><select id="wpFilter"><option value="all">Semua</option><option value="Belum Lunas">Belum lunas</option><option value="Lunas">Lunas</option></select></div></div>
  <div class="row"><div><label>Filter RT</label><input id="wpRTFilter" placeholder="Semua RT"></div><div><label>Jumlah per halaman</label><select id="wpPageSize"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></div></div>
  <button id="refreshWpBtn" class="secondary">Muat Ulang Data</button>
  <button id="wpSelectAllBtn" class="secondary">Pilih Semua Hasil</button>
@@ -311,7 +311,7 @@ function renderWp(){
  filteredWpRows=wpRows.filter(w=>{
   const p=paymentRows.find(x=>x.wajib_pajak_id===w.id);
   const status=p?.status||"Belum Lunas";
-  const matchesTerm=!term||(w.nama||"").toLocaleLowerCase("id").includes(term)||(w.nop||"").toLocaleLowerCase("id").includes(term)||(w.nopd||"").toLocaleLowerCase("id").includes(term);
+  const matchesTerm=!term||(w.nama||"").toLocaleLowerCase("id").includes(term)||(w.pemilik_sekarang||"").toLocaleLowerCase("id").includes(term)||(w.nop||"").toLocaleLowerCase("id").includes(term)||(w.nopd||"").toLocaleLowerCase("id").includes(term);
   return matchesTerm&&(!rtFilter||String(w.rt||"").toLocaleLowerCase("id").includes(rtFilter))&&(filter==="all"||status===filter);
  });
  const pageSize=Number($("wpPageSize").value||20),pages=Math.max(1,Math.ceil(filteredWpRows.length/pageSize));
