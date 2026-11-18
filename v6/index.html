@@ -141,7 +141,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <button id="addNoteBtn">Simpan Catatan</button><div id="notesList"></div>
 <div id="backupSection">
 <hr><h3>Backup dan restore (Admin Utama)</h3>
-<p class="muted">Backup memuat data wajib pajak, pembayaran, catatan, dan register setoran. File foto tidak ikut tersalin; yang disimpan hanya alamat file fotonya.</p>
+<p class="muted">Backup memuat data wajib pajak, pembayaran, catatan, register setoran, waktu pencatatan, dan informasi perangkat. File foto tidak ikut tersalin; yang disimpan hanya alamat file fotonya.</p>
 <p class="muted">Restore menggabungkan atau memperbarui data yang cocok berdasarkan NOP dan tahun. Data yang tidak ada di file backup tidak dihapus. Fitur ini hanya tersedia untuk Admin Utama.</p>
 <button id="backupBtn" class="secondary">Unduh Backup JSON</button>
 <label>Pilih file backup JSON untuk restore</label><input id="restoreFile" type="file" accept="application/json">
@@ -524,7 +524,7 @@ async function loadDeposits(){
 async function addDeposit(){
  const date=$("depositDate").value,name=$("depositName").value.trim(),amount=Number($("depositAmount").value);
  if(!date||!name||!Number.isFinite(amount)||amount<=0)throw Error("Tanggal, nama penyetor, dan jumlah setoran wajib diisi dengan benar.");
- const {error}=await db.from("pbb_setoran_petugas").insert({dusun_id:activeDusunId,tahun:Number($("workYear").value),tanggal_setor:date,nama_petugas:name,jumlah_setor:amount,catatan:$("depositNote").value.trim()||null});
+ const {error}=await db.from("pbb_setoran_petugas").insert({dusun_id:activeDusunId,tahun:Number($("workYear").value),tanggal_setor:date,nama_petugas:name,jumlah_setor:amount,catatan:$("depositNote").value.trim()||null,last_device:navigator.userAgent.slice(0,180)});
  if(error)throw error;
  $("depositName").value="";$("depositAmount").value="";$("depositNote").value="";
  await loadDeposits();msg("depositMsg","Setoran berhasil dicatat.",true);
@@ -569,7 +569,7 @@ async function loadNotes(){
 }
 async function addNote(){
  const title=$("noteTitle").value.trim(),body=$("noteBody").value.trim();if(!title)throw Error("Judul catatan wajib diisi.");
- const {error}=await db.from("pbb_catatan").insert({dusun_id:activeDusunId,judul:title,isi:body});if(error)throw error;
+ const {error}=await db.from("pbb_catatan").insert({dusun_id:activeDusunId,judul:title,isi:body,last_device:navigator.userAgent.slice(0,180)});if(error)throw error;
  $("noteTitle").value="";$("noteBody").value="";await loadNotes();
 }
 async function downloadBackup(){
