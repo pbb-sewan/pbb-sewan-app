@@ -224,11 +224,14 @@ async function loadAdmin(){
   const detail=document.createElement("p");detail.className="muted";detail.textContent="RT: "+(x.rt_diajukan||[]).join(", ")+" • Status: "+x.status;
   box.append(title,detail);
   if(x.status==="menunggu"){
+   const target=document.createElement("select");
+   const createOpt=document.createElement("option");createOpt.value="";createOpt.textContent="Buat dusun baru: "+x.nama_dusun;target.append(createOpt);
+   dusunRows.forEach(d=>{const opt=document.createElement("option");opt.value=d.id;opt.textContent="Gabungkan ke dusun: "+d.nama;target.append(opt);});
    const approve=document.createElement("button");approve.textContent="Setujui";
-   approve.onclick=()=>reviewRequest(x.id,true);
+   approve.onclick=()=>reviewRequest(x.id,true,target.value);
    const reject=document.createElement("button");reject.textContent="Tolak";reject.className="danger";
    reject.onclick=()=>reviewRequest(x.id,false);
-   box.append(approve,reject);
+   box.append(target,approve,reject);
   }
   $("requestsList").append(box);
  }
@@ -240,10 +243,10 @@ async function loadAdmin(){
   const opt=document.createElement("option");opt.value=d.id;opt.textContent=d.nama;sel.append(opt);
  }
 }
-async function reviewRequest(id,approve){
+async function reviewRequest(id,approve,dusunId=null){
  let note="";if(!approve)note=prompt("Catatan penolakan (boleh kosong):")||"";
- const {data,error}=await db.rpc("pbb_admin_review_kadus",{p_permohonan_id:id,p_setujui:approve,p_dusun_id:null,p_catatan:note});
- if(error)throw error;alert(approve?"Permohonan disetujui.":"Permohonan ditolak.");await loadAdmin();
+ const {data,error}=await db.rpc("pbb_admin_review_kadus",{p_permohonan_id:id,p_setujui:approve,p_dusun_id:dusunId||null,p_catatan:note});
+ if(error)throw error;alert(approve?"Permohonan disetujui dan dipasangkan ke dusun.":"Permohonan ditolak.");await loadAdmin();
 }
 async function loadKadus(){
  const {data,error}=await db.rpc("pbb_get_my_dusun_context");if(error)throw error;
