@@ -6,23 +6,57 @@
 <meta name="theme-color" content="#14532d">
 <title>PBB MENOREH 6.0 — Pengembangan</title>
 <style>
-:root{--g:#14532d;--g2:#166534;--bg:#f3f7f4;--line:#dbe5dd;--ink:#17231b;--muted:#64748b;--red:#b91c1c}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px Arial,sans-serif}
-header{background:var(--g);color:#fff;padding:18px 16px}header h1{font-size:21px;margin:0 0 5px}header p{margin:0;color:#d1fae5}
-main{max-width:850px;margin:18px auto;padding:0 12px 40px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px;margin-bottom:14px;box-shadow:0 3px 12px #0000000a}
-h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:16px 0 8px}.muted{color:var(--muted);line-height:1.5}.notice{background:#fff7d6;border:1px solid #f2d98b;padding:11px;border-radius:10px;margin-bottom:14px;line-height:1.45}
-label{display:block;font-weight:700;margin:10px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:#fff}textarea{min-height:74px}
-button{border:0;border-radius:9px;padding:11px 14px;font-weight:700;cursor:pointer;background:var(--g);color:white;margin:5px 5px 5px 0}button.secondary{background:#e2e8f0;color:#17231b}button.danger{background:#991b1b}button:disabled{opacity:.55}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hidden{display:none!important}.msg{padding:10px;border-radius:9px;margin-top:9px;white-space:pre-wrap}.ok{background:#dcfce7;color:#14532d}.err{background:#fee2e2;color:#991b1b}
-.item{border:1px solid var(--line);border-radius:10px;padding:12px;margin:9px 0}.pill{display:inline-block;background:#dcfce7;color:#14532d;padding:4px 8px;border-radius:20px;font-size:12px;font-weight:bold}
-hr{border:0;border-top:1px solid var(--line);margin:15px 0}
-@media(max-width:560px){.row{grid-template-columns:1fr}header h1{font-size:19px}}
+:root{--green:#14532d;--green2:#166534;--light:#f0fdf4;--bg:#f4f7f5;--white:#fff;--text:#17231b;--muted:#64748b;--red:#dc2626;--orange:#ea580c;--border:#dce5df;--shadow:0 4px 16px rgba(0,0,0,.07)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px Arial,Helvetica,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.hidden{display:none!important}
+main{width:100%;max-width:1100px;margin:auto;padding:14px 14px 40px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+h1,h2,h3,p{margin-top:0}h2{font-size:19px}h3{font-size:16px}
+.muted{color:var(--muted);line-height:1.5}
+label{display:block;font-weight:700;margin:12px 0 6px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;color:var(--text);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--green2);box-shadow:0 0 0 2px rgba(22,101,52,.1)}
+textarea{min-height:100px;resize:vertical}
+button{border:0;border-radius:9px;padding:11px 15px;font-weight:700;background:var(--green);color:white;margin:4px 4px 4px 0}
+button:disabled{opacity:.55;cursor:not-allowed}
+button.secondary{background:#e2e8f0;color:#1e293b}
+button.danger{background:var(--red)}
+button.warning{background:var(--orange)}
+button.success{background:#15803d}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1 1 180px;min-width:0}
+header{background:var(--green);color:#fff;padding:18px 14px;text-align:center}
+header h1{font-size:22px;margin:0 0 5px}header p{margin:0;font-size:12px;opacity:.9}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.topbar h2{margin:0;color:var(--green)}
+.item,.stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:13px;margin:9px 0;box-shadow:var(--shadow)}
+.item h2{margin:5px 0}
+.pill{display:inline-block;padding:5px 8px;border-radius:20px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534}
+.msg{padding:11px;border-radius:9px;margin-top:12px;font-size:13px;white-space:pre-wrap}
+.msg.hidden{display:none}.msg.ok{background:#dcfce7;color:#166534}.msg.err{background:#fee2e2;color:#991b1b}
+.notice{background:#fff7d6;border:1px solid #f2d98b;padding:11px;border-radius:10px;margin-bottom:14px;line-height:1.45}
+.nav{display:flex;gap:7px;overflow-x:auto;padding:3px 0 12px;margin:12px 0 5px;scrollbar-width:thin}
+.nav button{flex:0 0 auto;border:1px solid var(--border);background:#fff;color:#334155;border-radius:9px;padding:10px 13px;font-weight:700;margin:0}
+.nav button.active{background:var(--green);color:#fff;border-color:var(--green)}
+.work-tab-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.table-wrap{overflow-x:auto;width:100%}table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{border-bottom:1px solid var(--border);padding:10px 9px;text-align:left;vertical-align:middle}
+th{background:#f1f5f9;font-size:12px;white-space:nowrap}td{font-size:13px}
+.badge{display:inline-block;padding:5px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.paid{background:#dcfce7;color:#166534}.badge.unpaid{background:#fee2e2;color:#991b1b}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.toolbar>*{flex:1;min-width:120px}
+hr{border:0;border-top:1px solid var(--border);margin:16px 0}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+@media(min-width:650px){main{padding:22px}.form-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){header h1{font-size:20px}.topbar{align-items:flex-start}.nav button{padding:10px 12px}}
+@media print{.no-print,header,.nav,.footer,button{display:none!important}body{background:#fff}.card,.work-tab-panel{box-shadow:none;border:0}main{max-width:none;padding:0}table{min-width:0}}
 </style>
 </head>
 <body>
-<header><h1>PBB MENOREH 6.0</h1><p>Pengelolaan PBB multi-dusun • Admin Utama dan Kepala Dusun</p></header>
+<header><h1>PBB MENOREH 6.0</h1><p>Sistem Administrasi Pajak Bumi dan Bangunan</p></header>
 <main>
-<div class="notice"><b>Versi pengembangan.</b> Aplikasi 5.1 tetap menjadi aplikasi utama. Halaman ini sedang diuji dan belum menggantikan 5.1.</div>
 
 <section id="connectCard" class="card">
 <h2>Hubungkan ke PBB MENOREH</h2>
@@ -95,12 +129,19 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <section id="workCard" class="card hidden">
  <div class="row"><div><h2>Pengelolaan PBB</h2><span id="workDusunLabel" class="pill">Dusun belum dipilih</span></div><div><label>Tahun pajak</label><select id="workYear"><option>2026</option><option>2027</option><option>2025</option></select></div></div>
  <div id="adminDusunPicker" class="hidden"><label>Pilih dusun yang dikelola</label><select id="activeDusun"><option value="">Pilih dusun</option></select><button id="openDusunBtn">Buka Dusun</button></div>
- <div class="row">
+ <div class="row dashboard-stats">
   <div class="item"><div class="muted">Total target pajak</div><h2 id="sumTarget">Rp0</h2></div>
   <div class="item"><div class="muted">Sudah lunas</div><h2 id="sumPaid">Rp0</h2><small id="pctPaid">0% dari nominal target</small></div>
   <div class="item"><div class="muted">Belum lunas</div><h2 id="sumUnpaid">Rp0</h2><small id="pctUnpaid">0% dari nominal target</small></div>
   <div class="item"><div class="muted">Wajib pajak</div><h2 id="sumCount">0</h2></div>
  </div>
+ <nav class="nav no-print" aria-label="Menu dashboard">
+  <button type="button" class="active" data-work-tab="wpTab">Wajib Pajak</button>
+  <button type="button" data-work-tab="reportTab">Laporan</button>
+  <button type="button" data-work-tab="historyTab">Riwayat</button>
+  <button type="button" id="backupTabBtn" data-work-tab="backupTab">Backup</button>
+ </nav>
+ <section id="wpTab" class="work-tab-panel" data-work-panel="wpTab">
  <h3>Tambah wajib pajak</h3>
  <div class="row"><div><label>NOP</label><input id="wpNop"></div><div><label>NOPD (opsional)</label><input id="wpNopd"></div></div>
  <label>Nama wajib pajak</label><input id="wpNama">
@@ -122,7 +163,11 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
 <button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button> <button id="exportReportJpgBtn" class="secondary">Ekspor JPG</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
-<hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
+ </section>
+ <section id="historyTab" class="work-tab-panel hidden" data-work-panel="historyTab">
+ <h2>Riwayat aktivitas</h2><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
+ </section>
+ <section id="backupTab" class="work-tab-panel hidden" data-work-panel="backupTab">
 <div id="backupSection">
 <hr><h3>Backup dan restore (Admin Utama)</h3>
 <p class="muted">Backup memuat data wajib pajak, pembayaran, waktu pencatatan, dan informasi perangkat.</p>
@@ -131,6 +176,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <label>Pilih file backup JSON untuk restore</label><input id="restoreFile" type="file" accept="application/json">
 <button id="restoreBtn" class="danger">Gabungkan Data dari Backup</button><div id="backupMsg" class="msg hidden"></div>
 </div>
+ </section>
 
 </section>
 </main>
@@ -138,6 +184,12 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const $=id=>document.getElementById(id);
+function activateWorkTab(id){
+ document.querySelectorAll("[data-work-panel]").forEach(panel=>panel.classList.toggle("hidden",panel.dataset.workPanel!==id));
+ document.querySelectorAll("[data-work-tab]").forEach(button=>button.classList.toggle("active",button.dataset.workTab===id));
+}
+document.querySelectorAll("[data-work-tab]").forEach(button=>button.addEventListener("click",()=>activateWorkTab(button.dataset.workTab)));
+
 let db=null,session=null,user=null,role=null,dusunRows=[];
 const show=(id,on=true)=>$(id).classList.toggle("hidden",!on);
 function msg(id,text,ok=false){const el=$(id);el.textContent=text;el.className="msg "+(ok?"ok":"err");}
@@ -280,6 +332,8 @@ async function loadWpRTOptions(){const sel=$("wpRT");sel.innerHTML='<option valu
 async function startWork(){
  show("workCard",true);
  show("backupSection",role==="admin_utama");
+ show("backupTabBtn",role==="admin_utama");
+ activateWorkTab("wpTab");
  if(role==="admin_utama"){
   show("adminDusunPicker",true);
   const sel=$("activeDusun");sel.innerHTML='<option value="">Pilih dusun</option>';
