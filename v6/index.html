@@ -269,6 +269,7 @@ async function addWp(){
  if(!nop||!nama||!rt)throw Error("NOP, nama, dan RT wajib diisi.");
  const payload={dusun_id:activeDusunId,nop,nama,nopd:$("wpNopd").value.trim()||null,pemilik_sekarang:$("wpPemilik").value.trim()||null,rt,luas_tanah:Number($("wpLuas").value||0),nominal_pajak:Number($("wpNominal").value||0),letak:$("wpLetak").value.trim()||null,catatan:$("wpCatatan").value.trim()||null,last_device:navigator.userAgent.slice(0,180)};
  const {error}=await db.from("wajib_pajak").insert(payload);if(error)throw error;
+ const {error:yearError}=await db.rpc("pbb_prepare_dusun_year",{p_dusun_id:activeDusunId,p_tahun:Number($("workYear").value)});if(yearError)throw yearError;
  ["wpNop","wpNopd","wpNama","wpPemilik","wpRT","wpLuas","wpNominal","wpLetak","wpCatatan"].forEach(id=>$(id).value="");
  await loadWorkData();msg("wpMsg","Wajib pajak berhasil ditambahkan.",true);
 }
