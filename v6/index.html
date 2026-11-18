@@ -108,6 +108,20 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
  <div class="row"><div><label>Cari nama / NOP</label><input id="wpSearch" placeholder="Ketik nama atau NOP"></div><div><label>Filter pembayaran</label><select id="wpFilter"><option value="all">Semua</option><option value="Belum Lunas">Belum lunas</option><option value="Lunas">Lunas</option></select></div></div>
  <button id="refreshWpBtn" class="secondary">Muat Ulang Data</button>
  <div id="wpList" class="muted">Pilih dusun terlebih dahulu.</div>
+<hr><h3>Laporan dan cetak</h3>
+<div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
+<button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button>
+<div id="reportSummary" class="item"></div><div id="reportList"></div>
+<hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
+<hr><h3>Catatan dusun</h3>
+<label>Judul catatan</label><input id="noteTitle"><label>Isi catatan</label><textarea id="noteBody"></textarea>
+<button id="addNoteBtn">Simpan Catatan</button><div id="notesList"></div>
+<hr><h3>Backup dan restore</h3>
+<p class="muted">Backup berisi data PBB dusun. Simpan file di tempat aman. Restore dapat mengganti data yang ada sesuai mekanisme database.</p>
+<button id="backupBtn" class="secondary">Unduh Backup JSON</button>
+<label>Pilih file backup JSON untuk restore</label><input id="restoreFile" type="file" accept="application/json">
+<button id="restoreBtn" class="danger">Pulihkan Backup</button><div id="backupMsg" class="msg hidden"></div>
+
 </section>
 </main>
 <script type="module">
@@ -287,7 +301,66 @@ $("workYear").onchange=()=>loadWorkData().catch(e=>alert(e.message));
 $("wpSearch").oninput=renderWp;$("wpFilter").onchange=renderWp;
 $("addWpBtn").onclick=()=>addWp().catch(e=>msg("wpMsg",e.message));
 $("refreshWpBtn").onclick=()=>loadWorkData().catch(e=>alert(e.message));
-const priorRouteUser=routeUser;
+
+let reportRows=[];
+const dateFmt=v=>v?new Date(v).toLocaleDateString("id-ID"):"-";
+async function loadReport(){
+ if(!activeDusunId)throw Error("Pilih dusun dahulu.");
+ let q=db.from("pbb_laporan_tahunan").select("*").eq("dusun_id",activeDusunId).eq("tahun",Number($("workYear").value)).order("nama");
+ const rt=$("reportRT").value.trim();if(rt)q=q.eq("rt",rt);
+ const {data,error}=await q;if(error)throw error;
+ const f=$("reportFilter").value;
+ reportRows=(data||[]).filter(x=>f==="all"||x.status_pembayaran===f);
+ const total=reportRows.reduce((a,x)=>a+Number(x.target_pajak||0),0);
+ const paid=reportRows.reduce((a,x)=>a+Number(x.nominal_lunas||0),0);
+ $("reportSummary").textContent="Data: "+reportRows.length+" wajib pajak • Target: "+rupiah(total)+" • Lunas: "+rupiah(paid)+" • Belum lunas: "+rupiah(Math.max(0,total-paid));
+ const host=$("reportList");host.innerHTML="";
+ reportRows.forEach((x,i)=>{const el=document.createElement("div");el.className="item";el.textContent=(i+1)+". "+x.nama+" | NOP "+x.nop+" | RT "+(x.rt||"-")+" | "+x.status_pembayaran+" | Target "+rupiah(x.target_pajak)+" | Bayar "+rupiah(x.jumlah_bayar);host.append(el);});
+}
+async function loadHistory(){
+ if(!activeDusunId)throw Error("Pilih dusun dahulu.");
+ const [a,b]=await Promise.all([
+  db.from("pbb_riwayat_wajib_pajak").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60),
+  db.from("pbb_riwayat_pembayaran").select("*").eq("dusun_id",activeDusunId).order("dilakukan_pada",{ascending:false}).limit(60)
+ ]);
+ if(a.error)throw a.error;if(b.error)throw b.error;
+ const rows=[...(a.data||[]).map(x=>({...x,jenis:"Data WP"})),...(b.data||[]).map(x=>({...x,jenis:"Pembayaran"}))].sort((x,y)=>new Date(y.dilakukan_pada)-new Date(x.dilakukan_pada)).slice(0,80);
+ const host=$("historyList");host.innerHTML="";
+ if(!rows.length){host.textContent="Belum ada riwayat.";return;}
+ rows.forEach(x=>{const el=document.createElement("div");el.className="item";el.textContent=dateFmt(x.dilakukan_pada)+" "+new Date(x.dilakukan_pada).toLocaleTimeString("id-ID")+" • "+x.jenis+" • "+x.aksi+" • "+JSON.stringify(x.data_baru||x.data_lama||{}).slice(0,180);host.append(el);});
+}
+async function loadNotes(){
+ const {data,error}=await db.from("pbb_catatan").select("id,tanggal,judul,isi,created_at").eq("dusun_id",activeDusunId).order("tanggal",{ascending:false}).limit(100);
+ if(error)throw error;const host=$("notesList");host.innerHTML="";
+ (data||[]).forEach(n=>{const el=document.createElement("div");el.className="item";const t=document.createElement("b");t.textContent=dateFmt(n.tanggal)+" • "+n.judul;const p=document.createElement("p");p.textContent=n.isi;const del=document.createElement("button");del.className="danger";del.textContent="Hapus";del.onclick=async()=>{if(!confirm("Hapus catatan ini?"))return;const {error}=await db.from("pbb_catatan").delete().eq("id",n.id);if(error)alert(error.message);else loadNotes().catch(e=>alert(e.message));};el.append(t,p,del);host.append(el);});
+}
+async function addNote(){
+ const title=$("noteTitle").value.trim(),body=$("noteBody").value.trim();if(!title)throw Error("Judul catatan wajib diisi.");
+ const {error}=await db.from("pbb_catatan").insert({dusun_id:activeDusunId,judul:title,isi:body});if(error)throw error;
+ $("noteTitle").value="";$("noteBody").value="";await loadNotes();
+}
+async function downloadBackup(){
+ const {data,error}=await db.rpc("pbb_backup_dusun_data",{p_dusun_id:activeDusunId});if(error)throw error;
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="backup-pbb-"+$("workDusunLabel").textContent.replace(/[^a-z0-9]/gi,"-")+"-"+$("workYear").value+".json";a.click();URL.revokeObjectURL(url);
+ msg("backupMsg","Backup berhasil disiapkan.",true);
+}
+async function restoreBackup(){
+ const file=$("restoreFile").files[0];if(!file)throw Error("Pilih file backup terlebih dahulu.");
+ if(!confirm("PERINGATAN: Pulihkan backup ke dusun aktif? Pastikan file benar. Lanjutkan?"))return;
+ const raw=JSON.parse(await file.text());const {data,error}=await db.rpc("pbb_restore_dusun_data",{p_dusun_id:activeDusunId,p_backup:raw});if(error)throw error;
+ await loadWorkData();await loadReport();await loadNotes();msg("backupMsg","Permintaan restore selesai: "+JSON.stringify(data),true);
+}
+$("loadReportBtn").onclick=()=>loadReport().catch(e=>alert(e.message));
+$("reportFilter").onchange=()=>loadReport().catch(e=>alert(e.message));
+$("printReportBtn").onclick=()=>{if(!reportRows.length){alert("Tampilkan laporan dahulu.");return;}window.print();};
+$("loadHistoryBtn").onclick=()=>loadHistory().catch(e=>alert(e.message));
+$("addNoteBtn").onclick=()=>addNote().catch(e=>alert(e.message));
+$("backupBtn").onclick=()=>downloadBackup().catch(e=>msg("backupMsg",e.message));
+$("restoreBtn").onclick=()=>restoreBackup().catch(e=>msg("backupMsg",e.message));
+const oldLoadWorkData=loadWorkData;
+loadWorkData=async function(){await oldLoadWorkData();await loadNotes().catch(e=>console.warn(e));};
+\nconst priorRouteUser=routeUser;
 routeUser=async function(){await priorRouteUser();if(role==="admin_utama"||role==="admin_dusun")await startWork();};
 try{const savedUrl=localStorage.getItem("pbb6_url"),savedKey=localStorage.getItem("pbb6_key");if(savedUrl&&savedKey){$("sbUrl").value=savedUrl;$("sbKey").value=savedKey;await connect();}}catch(e){show("connectCard",true);msg("connectMsg",e.message);}
 </script>
