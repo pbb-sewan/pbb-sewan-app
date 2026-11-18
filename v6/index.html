@@ -306,7 +306,7 @@ async function loadWorkData(){
  const [dash,wp,pay]=await Promise.all([
   db.from("pbb_dashboard_ringkasan").select("*").eq("dusun_id",activeDusunId).eq("tahun",year).maybeSingle(),
   db.from("wajib_pajak").select("id,nop,nama,pemilik_sekarang,nopd,nominal_pajak,luas_tanah,letak,rt,last_device,created_at,updated_at").eq("dusun_id",activeDusunId).order("nama"),
-  db.from("pembayaran_pbb").select("id,wajib_pajak_id,tahun,status,tanggal_bayar,jumlah_bayar,metode_bayar,status_setoran,petugas_penerima,last_device,updated_at").eq("dusun_id",activeDusunId).eq("tahun",year)
+  db.from("pembayaran_pbb").select("id,wajib_pajak_id,tahun,status,tanggal_bayar,jumlah_bayar,last_device,updated_at").eq("dusun_id",activeDusunId).eq("tahun",year)
  ]);
  if(dash.error)throw dash.error;if(wp.error)throw wp.error;if(pay.error)throw pay.error;
  wpRows=wp.data||[];paymentRows=pay.data||[];
@@ -378,7 +378,7 @@ async function togglePayment(w,p){
  if(!p)throw Error("Data pembayaran tahun ini belum terbentuk. Muat ulang dahulu.");
  if(p.status==="Lunas"){
   if(!confirm("Batalkan status lunas untuk "+w.nama+"?"))return;
-  const {error}=await db.from("pembayaran_pbb").update({status:"Belum Lunas",tanggal_bayar:null,jumlah_bayar:0,metode_bayar:null,status_setoran:null,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
+  const {error}=await db.from("pembayaran_pbb").update({status:"Belum Lunas",tanggal_bayar:null,jumlah_bayar:0,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
  }else{
   if(!confirm("Catat pembayaran PBB "+w.nama+" sebagai LUNAS sebesar "+rupiah(w.nominal_pajak)+"?"))return;
   const {error}=await db.from("pembayaran_pbb").update({status:"Lunas",tanggal_bayar:new Date().toISOString().slice(0,10),jumlah_bayar:Number(w.nominal_pajak||0),metode_bayar:null,status_setoran:null,petugas_penerima:null,last_device:navigator.userAgent.slice(0,180)}).eq("id",p.id);if(error)throw error;
