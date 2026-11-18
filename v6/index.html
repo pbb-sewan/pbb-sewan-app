@@ -278,7 +278,8 @@ async function addWp(){
 
 async function chooseEvidence(w){
  const picker=document.createElement("input");picker.type="file";picker.accept="image/jpeg,image/png,image/webp";
- picker.onchange=async()=>{const file=picker.files?.[0];if(!file)return;
+ picker.onchange=async()=>{try{
+  const file=picker.files?.[0];if(!file)return;
   if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("Format foto harus JPG, PNG, atau WebP.");
   if(file.size>5*1024*1024)throw new Error("Ukuran foto maksimal 5 MB.");
   const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
@@ -287,7 +288,7 @@ async function chooseEvidence(w){
   const {error:updateError}=await db.from("wajib_pajak").update({foto_bukti:path,last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);
   if(updateError)throw updateError;
   await loadWorkData();alert("Foto bukti berhasil disimpan.");
- };
+ }catch(e){alert(e.message||String(e));}};
  picker.click();
 }
 async function viewEvidence(w){
