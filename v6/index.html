@@ -127,7 +127,7 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 </section>
 
 <section id="workCard" class="card hidden">
- <div class="row"><div><h2>Pengelolaan PBB</h2><span id="workDusunLabel" class="pill">Dusun belum dipilih</span></div><div><label>Tahun pajak</label><select id="workYear"><option>2026</option><option>2027</option><option>2025</option></select></div></div>
+ <div class="row"><div><h2>Pengelolaan PBB</h2><span id="workDusunLabel" class="pill">Dusun belum dipilih</span></div><div><label>Tahun pajak</label><select id="workYear"></select></div></div>
  <div id="adminDusunPicker" class="hidden"><label>Pilih dusun yang dikelola</label><select id="activeDusun"><option value="">Pilih dusun</option></select><button type="button" id="openDusunBtn">Buka Dusun</button><div id="openDusunMsg" class="msg hidden"></div></div>
  <div class="row dashboard-stats">
   <div class="item"><div class="muted">Total target pajak</div><h2 id="sumTarget">Rp0</h2></div>
@@ -186,6 +186,21 @@ hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const $=id=>document.getElementById(id);
+function initYearOptions(){
+ const currentYear=new Date().getFullYear();
+ const firstYear=2021;
+ const lastYear=Math.max(currentYear+1,2028);
+ const select=$("workYear");
+ select.innerHTML="";
+ for(let year=lastYear;year>=firstYear;year--){
+  const option=document.createElement("option");
+  option.value=String(year);
+  option.textContent=String(year);
+  select.append(option);
+ }
+ select.value=String(currentYear);
+}
+initYearOptions();
 function activateWorkTab(id){
  document.querySelectorAll("[data-work-panel]").forEach(panel=>panel.classList.toggle("hidden",panel.dataset.workPanel!==id));
  document.querySelectorAll("[data-work-tab]").forEach(button=>button.classList.toggle("active",button.dataset.workTab===id));
