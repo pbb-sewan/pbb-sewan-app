@@ -25,7 +25,7 @@ button.secondary{background:#e2e8f0;color:#1e293b}
 button.danger{background:var(--red)}
 button.warning{background:var(--orange)}
 button.success{background:#15803d}
-.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.dashboard-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dashboard-stats>.item{margin:0;min-width:0}
 .row>*{flex:1 1 180px;min-width:0}
 header{background:var(--green);color:#fff;padding:18px 14px;text-align:center}
 header h1{font-size:22px;margin:0 0 5px}header p{margin:0;font-size:12px;opacity:.9}
@@ -49,7 +49,7 @@ th{background:#f1f5f9;font-size:12px;white-space:nowrap}td{font-size:13px}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.toolbar>*{flex:1;min-width:120px}
 hr{border:0;border-top:1px solid var(--border);margin:16px 0}
 .footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
-@media(min-width:650px){main{padding:22px}.form-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:650px){main{padding:22px}.form-grid{grid-template-columns:1fr 1fr}.dashboard-stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:560px){header h1{font-size:20px}.topbar{align-items:flex-start}.nav button{padding:10px 12px}}
 @media print{.no-print,header,.nav,.footer,button{display:none!important}body{background:#fff}.card,.work-tab-panel{box-shadow:none;border:0}main{max-width:none;padding:0}table{min-width:0}}
 </style>
