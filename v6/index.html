@@ -154,7 +154,8 @@ function resetPanels(){["authCard","changePasswordCard","applyCard","adminCard",
 async function connect(){
  const url=$("sbUrl").value.trim(),key=$("sbKey").value.trim();
  if(!url||!key)throw Error("URL dan publishable key wajib diisi.");
- localStorage.setItem("pbb6_url",url);localStorage.setItem("pbb6_key",key);\n db=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ localStorage.setItem("pbb6_url",url);localStorage.setItem("pbb6_key",key);
+ db=createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const {data,error}=await db.auth.getSession();if(error)throw error;
  session=data.session;user=session?.user||null;show("connectCard",false);
  if(user)await routeUser();else show("authCard",true);
@@ -276,7 +277,8 @@ async function startWork(){
 }
 async function openSelectedDusun(){
  const id=$("activeDusun").value;if(!id)throw Error("Pilih dusun terlebih dahulu.");
- const d=dusunRows.find(x=>x.id===id);if(d&&!d.owner_id)throw Error("Dusun ini belum memiliki Kepala Dusun/pengelola aktif. Buat atau setujui akun Kepala Dusun terlebih dahulu.");\n activeDusunId=id;$("workDusunLabel").textContent=d?.nama||"Dusun terpilih";
+ const d=dusunRows.find(x=>x.id===id);if(d&&!d.owner_id)throw Error("Dusun ini belum memiliki Kepala Dusun/pengelola aktif. Buat atau setujui akun Kepala Dusun terlebih dahulu.");
+ activeDusunId=id;$("workDusunLabel").textContent=d?.nama||"Dusun terpilih";
  await loadWorkData();
 }
 async function loadWorkData(){
