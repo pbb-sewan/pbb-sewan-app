@@ -31,7 +31,7 @@
 - Upload dan tampilan foto pada Android.
 - Cetak dan ekspor JPG pada browser Android.
 - Alur backup/restore dengan data uji lengkap.
-- Audit akhir peringatan keamanan Supabase.
+- Audit akhir peringatan keamanan Supabase. Leaked-password protection HaveIBeenPwned tidak aktif karena fitur tersebut memerlukan paket Pro atau lebih tinggi.
 
 ## Pemeriksaan teknis yang sudah dilakukan
 - Sintaks JavaScript halaman 6.0 valid.
