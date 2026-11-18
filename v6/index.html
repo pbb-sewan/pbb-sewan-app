@@ -20,7 +20,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 </style>
 </head>
 <body>
-<header><h1>PBB SEWAN 6.0</h1><p>Pengembangan multi-dusun • Tahap akun dan wilayah RT</p></header>
+<header><h1>PBB SEWAN 6.0</h1><p>Pengelolaan PBB multi-dusun • Admin Utama dan Kepala Dusun</p></header>
 <main>
 <div class="notice"><b>Versi pengembangan.</b> Aplikasi 5.1 tetap menjadi aplikasi utama. Halaman ini sedang diuji dan belum menggantikan 5.1.</div>
 
@@ -89,7 +89,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <section id="kadusCard" class="card hidden">
 <div class="row"><div><h2>Panel Kepala Dusun</h2><span class="pill">ADMIN DUSUN</span></div><div style="text-align:right"><button id="logoutKadusBtn" class="secondary">Keluar</button></div></div>
 <div id="kadusContext" class="item">Memuat wilayah...</div>
-<p class="muted">Tahap ini menguji login, peran, dan pembatasan wilayah RT. Modul wajib pajak, pembayaran, laporan, riwayat, serta backup akan dipasang setelah alur akses dinyatakan benar.</p>
+<p class="muted">Kelola data wajib pajak dan pembayaran hanya pada dusun serta RT yang ditugaskan. Fitur backup dan restore seluruh dusun hanya tersedia untuk Admin Utama.</p>
 </section>
 
 <section id="workCard" class="card hidden">
@@ -123,7 +123,7 @@ hr{border:0;border-top:1px solid var(--line);margin:15px 0}
 <div class="row"><div><label>Filter laporan</label><select id="reportFilter"><option value="all">Semua</option><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div><div><label>Filter RT (opsional)</label><input id="reportRT" placeholder="RT 01"></div></div>
 <button id="loadReportBtn">Tampilkan Laporan</button> <button id="printReportBtn" class="secondary">Cetak Laporan</button> <button id="printOwnerReportBtn" class="secondary">Cetak Rekap per Pemilik</button> <button id="exportReportBtn" class="secondary">Ekspor CSV</button> <button id="exportReportJpgBtn" class="secondary">Ekspor JPG</button>
 <div id="reportSummary" class="item"></div><div id="reportList"></div>
-hapus seluruh UI posisi uang dan setoran<hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
+<hr><h3>Riwayat aktivitas</h3><button id="loadHistoryBtn" class="secondary">Muat Riwayat</button><div id="historyList" class="muted"></div>
 <div id="backupSection">
 <hr><h3>Backup dan restore (Admin Utama)</h3>
 <p class="muted">Backup memuat data wajib pajak, pembayaran, waktu pencatatan, dan informasi perangkat. File foto tidak ikut tersalin; yang disimpan hanya alamat file fotonya.</p>
@@ -260,7 +260,7 @@ $("savePasswordBtn").onclick=async()=>{setBusy("savePasswordBtn",true,"Simpan Ka
 $("applyBtn").onclick=async()=>{setBusy("applyBtn",true,"Kirim Permohonan");try{const nama=$("applyName").value.trim(),dusun=$("applyDusun").value.trim(),rts=rtList($("applyRT").value);if(rts.length===0)throw Error("Isi minimal satu RT.");const {data,error}=await db.rpc("pbb_submit_kadus_application",{p_nama_lengkap:nama,p_nama_dusun:dusun,p_rt:rts});if(error)throw error;msg("applyMsg","Permohonan terkirim dan menunggu persetujuan Admin Utama.",true);}catch(e){msg("applyMsg",e.message);}finally{setBusy("applyBtn",false,"Kirim Permohonan");}};
 $("refreshAdminBtn").onclick=()=>loadAdmin().catch(e=>alert(e.message));
 $("createDusunBtn").onclick=async()=>{setBusy("createDusunBtn",true,"Buat Dusun");try{const nama=$("newDusunName").value.trim();const {error}=await db.rpc("pbb_create_dusun",{p_nama:nama});if(error)throw error;$("newDusunName").value="";msg("dusunMsg","Dusun berhasil dibuat. Pilih dusun tersebut saat membuat akun Kepala Dusun.",true);await loadAdmin();}catch(e){msg("dusunMsg",e.message);}finally{setBusy("createDusunBtn",false,"Buat Dusun");}};
-$("createAccountBtn").onclick=async()=>{setBusy("createAccountBtn",true,"Buat Akun Kepala Dusun");try{const rts=rtList($("createRT").value);if(!rts.length)throw Error("Masukkan minimal satu RT.");const {data:s}=await db.auth.getSession();const token=s.session?.access_token;if(!token)throw Error("Sesi login tidak ditemukan.");const res=await fetch("https://jikrxatgnqudfskswbae.supabase.co/functions/v1/create-kadus-account",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":$("sbKey").value.trim()},body:JSON.stringify({nama:$("createNama").value.trim(),email:$("createEmail").value.trim(),password:$("createPassword").value,dusun_id:$("createDusunSelect").value,rt:rts})});const out=await res.json();if(!res.ok)throw Error(out.error||"Gagal membuat akun.");msg("createAccountMsg","Akun Kepala Dusun berhasil dibuat untuk "+out.dusun+". Pengguna wajib mengganti kata sandi saat login pertama.",true);$("createNama").value=$("createEmail").value=$("createPassword").value=$("createRT").value="";}catch(e){msg("createAccountMsg",e.message);}finally{setBusy("createAccountBtn",false,"Buat Akun Kepala Dusun");}};
+$("createAccountBtn").onclick=async()=>{setBusy("createAccountBtn",true,"Buat Akun Kepala Dusun");try{const rts=rtList($("createRT").value);if(!rts.length)throw Error("Masukkan minimal satu RT.");const {data:s}=await db.auth.getSession();const token=s.session?.access_token;if(!token)throw Error("Sesi login tidak ditemukan.");const res=await fetch("https://jikrxatgnqudfskswbae.supabase.co/functions/v1/create-kadus-account",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token,"apikey":$("sbKey").value.trim()},body:JSON.stringify({nama:$("createNama").value.trim(),email:$("createEmail").value.trim(),password:$("createPassword").value,dusun_id:$("createDusunSelect").value,rt:rts})});const out=await res.json();if(!res.ok)throw Error(out.error||"Gagal membuat akun.");msg("createAccountMsg","Akun Kepala Dusun berhasil dibuat untuk "+out.dusun+". Pengguna wajib mengganti kata sandi saat login pertama.",true);$("createNama").value=$("createEmail").value=$("createPassword").value=$("createRT").value="";await loadAdmin();}catch(e){msg("createAccountMsg",e.message);}finally{setBusy("createAccountBtn",false,"Buat Akun Kepala Dusun");}};
 async function logout(){await db.auth.signOut();session=null;user=null;role=null;resetPanels();show("authCard",true);}
 $("logoutAdminBtn").onclick=logout;$("logoutKadusBtn").onclick=logout;
 
@@ -421,7 +421,16 @@ async function editWp(w){
  const nop=prompt("NOP:",w.nop);if(nop===null)return;
  const nominal=prompt("Nominal pajak (angka):",String(w.nominal_pajak||0));if(nominal===null)return;
  const rt=prompt("RT:",w.rt||"");if(rt===null)return;
- const {error}=await db.from("wajib_pajak").update({nama:nama.trim(),nop:nop.trim(),nominal_pajak:Number(nominal)||0,rt:rt.trim(),last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);if(error)throw error;await loadWorkData();
+ const nopd=prompt("NOPD:",w.nopd||"");if(nopd===null)return;
+ const pemilik=prompt("Pemilik sekarang:",w.pemilik_sekarang||"");if(pemilik===null)return;
+ const luas=prompt("Luas tanah (m²):",String(w.luas_tanah??0));if(luas===null)return;
+ const letak=prompt("Letak / alamat:",w.letak||"");if(letak===null)return;
+ const catatan=prompt("Catatan wajib pajak:",w.catatan||"");if(catatan===null)return;
+ const nilaiNominal=Number(nominal),nilaiLuas=Number(luas);
+ if(!Number.isFinite(nilaiNominal)||nilaiNominal<0)throw Error("Nominal pajak harus berupa angka 0 atau lebih.");
+ if(!Number.isFinite(nilaiLuas)||nilaiLuas<0)throw Error("Luas tanah harus berupa angka 0 atau lebih.");
+ if(!nama.trim()||!nop.trim()||!rt.trim())throw Error("Nama, NOP, dan RT wajib diisi.");
+ const {error}=await db.from("wajib_pajak").update({nama:nama.trim(),nop:nop.trim(),nopd:nopd.trim()||null,pemilik_sekarang:pemilik.trim()||null,nominal_pajak:nilaiNominal,rt:rt.trim(),luas_tanah:nilaiLuas,letak:letak.trim()||null,catatan:catatan.trim()||null,last_device:navigator.userAgent.slice(0,180)}).eq("id",w.id);if(error)throw error;await loadWorkData();
 }
 async function deleteWp(w){
  if(!confirm("Hapus data wajib pajak "+w.nama+"? Tindakan ini tidak dapat dibatalkan."))return;
